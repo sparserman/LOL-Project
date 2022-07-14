@@ -18,6 +18,8 @@ public abstract class BaseActor : MonoBehaviour
     public abstract void Click_ESkillEvent();
     public abstract void Click_RSkillEvent();
 
+    public abstract void Click_SpeelEvent(KeyCode p_code);
+
 
     protected NavMeshAgent m_LinkNavMeshAgent = null;
     protected virtual void Awake()
