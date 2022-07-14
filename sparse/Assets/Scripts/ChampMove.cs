@@ -18,6 +18,8 @@ public class ChampMove : MonoBehaviour
     public GameObject attackTarget;    // 공격목표
 
     public PoppyPassiveSkill PassiveSkillObj;        // Passive 스킬 이펙트
+    public GameObject Shield;   // 방패
+
     public GameObject QSkillObj;        // Q 스킬 이펙트
     public GameObject WSkillObj;        // W 스킬 이펙트
     public GameObject RSkillObj;        // R 스킬 범위 이펙트
@@ -334,13 +336,24 @@ public class ChampMove : MonoBehaviour
                 cpyObj.transform.rotation = new Quaternion(0,0,0,90);
                 cpyObj.gameObject. SetActive(true);
                 cpyObj.Init(attackTarget, this);
+                // 방패 제거
+                Shield.SetActive(false);
                 break;
             case 1:
                 PassiveOn = false;
                 ani.SetBool("isPassive", false);
+                StartCoroutine(PassiveTime());
                 break;
                 
         }
+    }
+
+    // 패시브 쿨타임
+    IEnumerator PassiveTime()
+    {
+        yield return new WaitForSeconds(3f);
+        PassiveOn = true;
+        Shield.SetActive(true);
     }
 
     // Q 스킬
