@@ -6,6 +6,8 @@ public class objPos : MonoBehaviour
 {
     [SerializeField] float objspeed = 10f;
     public GameObject ch;
+    public GameObject efc_w;
+
     private Vector3 objPOS;
     private Vector3 objDir;
 
@@ -18,8 +20,6 @@ public class objPos : MonoBehaviour
 
     [SerializeField]
     private Vector3 Worldpos;
-    [SerializeField]
-    private Vector3 Screenpos;
 
     [SerializeField]
     protected Camera m_InGameCamera = null;
@@ -31,6 +31,7 @@ public class objPos : MonoBehaviour
 
     bool m_ISQClicked = false;
     bool m_ISEClicked = false;
+   
 
 
     void Start()
@@ -42,8 +43,9 @@ public class objPos : MonoBehaviour
     void Update()
     {
         
-        CalMousePos(); // 실시간 마우스 좌표
+       CalMousePos(); // 실시간 마우스 좌표
         inputkeycode(); // 키 입력 
+       
 
         if (ballfixedch)
         {
@@ -56,16 +58,7 @@ public class objPos : MonoBehaviour
     {
         // 키 입력
         //Q
-        if (Input.GetKey(KeyCode.Q))
-        {
-            m_ISQClicked = true;
-            Debug.Log("Input key Q");
-        }
-        if (Input.GetKeyUp(KeyCode.Q))
-        {
-            m_ISQClicked = false;
-        }
-        if (m_ISQClicked)
+        if (Input.GetKeyDown(KeyCode.Q))
         {
             skill_Q();
             Debug.Log("skill Q");
@@ -105,22 +98,20 @@ public class objPos : MonoBehaviour
     // 공이 캐릭터 따라다닐 때 
     void fixedball()
     {
-        objPOS = ch.transform.position + new Vector3(0.2f, 0.5f, 0.3f);
-        transform.position = ch.transform.position + objPOS;
+        transform.position = ch.transform.position + new Vector3(0.5f, 0.5f, 0.5f);
     }
 
     //마우스 좌표, 월드 좌표 
     void CalMousePos()
     {
-        Screenpos = Input.mousePosition;
 
-        Ray ray = Camera.main.ScreenPointToRay(Screenpos);
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(ray, out RaycastHit hitdata, 100, 1 << 8))
+        if (Physics.Raycast(ray, out RaycastHit hitdata))
         {
             Worldpos = hitdata.point;
         }
-        transform.position = Worldpos;
+
     }
 
    
@@ -137,6 +128,7 @@ public class objPos : MonoBehaviour
             if ( (transform.position - p_targetpos).magnitude <= 0.1f )
             {
                 transform.position = p_targetpos;
+                m_ISQClicked = false;
                 break;
             }
         }
@@ -153,25 +145,24 @@ public class objPos : MonoBehaviour
             StopCoroutine(m_MoveCortouine);
             m_MoveCortouine = null;
         }
-        transform.position = Vector3.MoveTowards(transform.position, ClickWPos, Time.deltaTime * objspeed);
         StartCoroutine( UpdateTargetMove(ClickWPos) );
     }
 
     void skill_Q()
     {
-        if(Input.GetMouseButtonDown(1))
-        {
+            ClickWPos = Worldpos;
             ballfixedch = false;
             ObjMove();
-        }
+        
 
         
     }
 
     void skill_W()
     {
-      
-       
+        efc_w.transform.position = transform.position + new Vector3(0.0f,0.5f,0.0f);
+        efc_w.SetActive(true);
+        StartCoroutine(isW());
     }
 
     void skill_E()
@@ -183,5 +174,12 @@ public class objPos : MonoBehaviour
     {
 
     }
+
+    IEnumerator isW()    
+    {
+        yield return new WaitForSeconds(2f);
+        efc_w.SetActive(false);
+    }
+
 
 }
