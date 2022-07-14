@@ -105,7 +105,7 @@ public class objPos : MonoBehaviour
     // 공이 캐릭터 따라다닐 때 
     void fixedball()
     {
-        objPOS = ch.transform.position + new Vector3(0.3f, 1.0f, 0.3f);
+        objPOS = ch.transform.position + new Vector3(0.2f, 0.5f, 0.3f);
         transform.position = ch.transform.position + objPOS;
     }
 
@@ -116,7 +116,7 @@ public class objPos : MonoBehaviour
 
         Ray ray = Camera.main.ScreenPointToRay(Screenpos);
 
-        if (Physics.Raycast(ray, out RaycastHit hitdata, 100, 1 << 7))
+        if (Physics.Raycast(ray, out RaycastHit hitdata, 100, 1 << 8))
         {
             Worldpos = hitdata.point;
         }
@@ -161,8 +161,8 @@ public class objPos : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(1))
         {
-            ObjMove();
             ballfixedch = false;
+            ObjMove();
         }
 
         
