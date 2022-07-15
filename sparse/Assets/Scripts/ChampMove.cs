@@ -165,6 +165,7 @@ public class ChampMove : MonoBehaviour
                         attackCheck = true;
                         if (m_AttackDelayCoroutine != null)
                         {
+                            Debug.Log("스탑3");
                             StopCoroutine(m_AttackDelayCoroutine);
                             m_AttackDelayCoroutine = null;
                         }
@@ -224,6 +225,9 @@ public class ChampMove : MonoBehaviour
                 agent.speed = 0;
                 // 적 방향 쳐다보기
                 transform.forward = attackTarget.transform.position - transform.position;
+
+                // 어택 모션 끄기
+                ani.SetInteger("AttackMotion", 0);
 
                 // 공격 가능 상태 일때
                 if (attackCheck && !ani.GetBool("isRSkill"))
@@ -321,6 +325,8 @@ public class ChampMove : MonoBehaviour
             attackCheck = true;
             hitCheck = false;
         }
+
+        m_AttackDelayCoroutine = null;
     }
 
     // 패시브
@@ -444,6 +450,8 @@ public class ChampMove : MonoBehaviour
         }
         state.Speed -= 300;
         Destroy(obj);
+
+        m_WSkillEffectCoroutine = null;
     }
 
     // E 스킬
