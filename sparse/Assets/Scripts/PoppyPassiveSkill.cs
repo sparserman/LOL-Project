@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class PoppyPassiveSkill : MonoBehaviour
 {
+
     protected GameObject target;
-    protected ChampMove Poppy;
+    protected ChampMove Champ;
 
     private bool hit = false;   // 공격 됐는지
     private bool end = false;   // 도착 했는지
@@ -20,6 +21,8 @@ public class PoppyPassiveSkill : MonoBehaviour
 
     public float num = 0;
 
+    
+
     private void Start()
     {
         startTime = Time.time;
@@ -27,10 +30,10 @@ public class PoppyPassiveSkill : MonoBehaviour
 
     public void Init( GameObject p_target, ChampMove p_poppy )
     {
-        Poppy = p_poppy;
+        Champ = p_poppy;
         target = p_target;
 
-        target = Poppy.attackTarget;
+        target = Champ.attackTarget;
     }
 
     void Update()
@@ -54,19 +57,27 @@ public class PoppyPassiveSkill : MonoBehaviour
     {
         if(Vector3.Distance(transform.position, target.transform.position) < 0.1f && !hit)
         {
+            // 히트
+            Champ.Aggro();
+
             hit = true;
             // 중간 지점
-            droppos = (target.transform.position + Poppy.transform.position) * 0.5f;
+            droppos = (target.transform.position + Champ.transform.position) * 0.5f;
             droppos.y = 0.5f;
 
-            RaycastHit rayhit;
-            if(Physics.Raycast((target.transform.position + Poppy.transform.position) * 0.5f
-                , droppos + transform.right, out rayhit, 5f))
+            Debug.DrawLine((target.transform.position + Champ.transform.position) * 0.5f
+                , droppos + transform.right * 5f, Color.green, 3f);
+
+            // 벽 체크
+            if(Physics.Raycast((target.transform.position + Champ.transform.position) * 0.5f
+                , transform.right, 5f))
             {
+                Debug.Log("오른쪽 벽 있음");
                 droppos -= transform.right * 3;
             }
             else
             {
+                Debug.Log("없음");
                 droppos += transform.right * 3;
             }
         }
@@ -118,7 +129,7 @@ public class PoppyPassiveSkill : MonoBehaviour
             if(other.name == "Poppy")
             {
                 GameObject cpyObj;
-                cpyObj = Instantiate(ShieldObj, Poppy.transform.position, Quaternion.identity);
+                cpyObj = Instantiate(ShieldObj, Champ.transform.position, Quaternion.identity);
                 cpyObj.SetActive(true);
 
                 Destroy(gameObject);

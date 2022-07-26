@@ -11,6 +11,7 @@ public class ChampMove : MonoBehaviour
     private NavMeshAgent agent;
 
     private Vector3 destination;    // 목적지 좌표
+    private Transform deInfo;         // 목적지 정보
 
     private bool clickCheck = true;        // 꾹 누를때 천천히 반복하기 위함
     private float clickTime = 0;            // 클릭 딜레이
@@ -47,6 +48,9 @@ public class ChampMove : MonoBehaviour
     private LayerMask enemyMask;        // 적 전용
     [SerializeField]
     private LayerMask MapMask;        // 맵 전용
+
+
+    public float deltaRotation;     // 회전 속도
 
 
     void Start()
@@ -112,7 +116,7 @@ public class ChampMove : MonoBehaviour
             }
         }
 
-        if (clickTime >= 0.3f)
+        if (clickTime >= 0.2f)
         {
             // 클릭 가능 상태로 바꾸기
             clickCheck = true;
@@ -143,6 +147,8 @@ public class ChampMove : MonoBehaviour
                 {
                     // 목표지 설정
                     ChampSetDestination(hit.point);
+                    deInfo = hit.transform;
+                    
                 }
 
                 // 공격용 위치 찾기
@@ -184,7 +190,7 @@ public class ChampMove : MonoBehaviour
                 var dir = new Vector3(agent.steeringTarget.x, transform.position.y, agent.steeringTarget.z) - transform.position;
 
                 // 방향전환
-                transform.forward = dir;
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(dir), deltaRotation);
 
                 // 목적지 도착 시
                 if (Vector3.Distance(transform.position, destination) <= 0.5f)
@@ -203,9 +209,9 @@ public class ChampMove : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnCollisionStay(Collision collision)
     {
-        if(collision.collider.tag == "Wall")
+        if(collision.collider.tag == "Wall" && deInfo.tag == "Wall")
         {
             ani.SetInteger("isMove", 0);
             agent.speed = 0;
@@ -282,11 +288,10 @@ public class ChampMove : MonoBehaviour
                     m_AttackDelayCoroutine = StartCoroutine(AttackDelay());
 
                     attackCheck = false;
-                    ani.SetInteger("AttackMotion", attackCount);
 
                 }
             }
-            else
+            else if (!ani.GetBool("isPassive"))
             {
                 ani.SetInteger("isMove", 2);
                 ani.SetInteger("AttackMotion", 0);
@@ -308,11 +313,32 @@ public class ChampMove : MonoBehaviour
         }
     }
 
-    // 공격 히트
+    // 공격 성공
     public void AttackEvent()
     {
-        Debug.Log("히트!");
+        Aggro();    // 어그로
         hitCheck = true;
+    }
+
+    public void Aggro()
+    {
+        // 어그로 끌기
+        if (attackTarget.tag == "Mob")
+        {
+            Mob mob = attackTarget.GetComponent<Mob>();
+            if(mob.attackTarget == null)
+            {
+                mob.attackTarget = gameObject;
+            }
+        }
+        else if (attackTarget.name == "BaronBase")
+        {
+            Baron_2 baron = attackTarget.GetComponent<Baron_2>();
+            if(baron.attackTarget == null)
+            {
+                baron.attackTarget = gameObject;
+            }
+        }
     }
 
     // 공격 딜레이 (공격속도)
