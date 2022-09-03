@@ -1,0 +1,645 @@
+#pragma comment(lib, "ws2_32")
+#include <winsock2.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "resource.h"
+
+#define SERVERIP   "127.0.0.1"
+#define SERVERPORT 9000
+#define BUFSIZE    512
+enum MENU
+{
+	JOIN_MENU = 1, LOGIN_MENU, LOGOUT_MENU = 1, EXIT_MENU = 3
+};
+enum SHOWMMENU
+{
+	CREATE_MENU=1,
+	ENTER_ROOM_MENU,
+	SHOW_ROOM_MENU
+};
+enum STATE
+{
+	SNODATA=-1,
+	LOGIN,
+	SHOWMENU
+}state;
+enum RESULT
+{
+	NODATA = -1,
+	ID_EXIST = 1,
+	ID_ERROR,
+	PW_ERROR,
+	JOIN_SUCCESS,
+	LOGIN_SUCCESS,
+	LOGOUT_SUCCESS,
+	CREATE_ROOM_RESULT
+};
+struct Loominfo
+{
+	char Loomname[256];
+	bool loomnamecheck = false;
+}loominfo;
+struct Logininfo
+{
+	char ID[256];
+	char PW[256];
+	char NICKNAME[256];
+}logininfo;
+enum PROTOCOL
+{
+	JOIN_INFO,
+	LOGIN_INFO,
+	JOIN_RESULT,
+	LOGIN_RESULT,
+	LOGOUT,
+	LOGOUT_RESULT,
+	CREATE_ROOM,
+	ENTER_ROOM,
+	SHOW_ROOM_INFO
+};
+void err_display(char* msg);
+int recvn(SOCKET s, char* buf, int len, int flags);
+
+bool PacketRecv(SOCKET _sock, char* _buf)
+{
+	int size;
+
+	int retval = recvn(_sock, (char*)&size, sizeof(size), 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("recv error()");
+		return false;
+	}
+	else if (retval == 0)
+	{
+		return false;
+	}
+
+	retval = recvn(_sock, _buf, size, 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("recv error()");
+		return false;
+
+	}
+	else if (retval == 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+void GetProtocol(char* _ptr, PROTOCOL& _protocol)
+{
+	memcpy(&_protocol, _ptr, sizeof(PROTOCOL));
+
+}
+bool first = false;
+static int logincount;
+static int logjoincount = 0;
+static int choice=0;
+// 대화상자 프로시저
+BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
+// 편집 컨트롤 출력 함수
+void DisplayText(char *fmt, ...);
+// 오류 출력 함수
+void err_quit(char *msg);
+void err_display(char *msg);
+// 사용자 정의 데이터 수신 함수
+int recvn(SOCKET s, char *buf, int len, int flags);
+// 소켓 통신 스레드 함수
+DWORD WINAPI ClientMain(LPVOID arg);
+
+SOCKET sock; // 소켓
+char buf[BUFSIZE+1]; // 데이터 송수신 버퍼
+HANDLE hReadEvent, hWriteEvent; // 이벤트
+HWND Whisperbutton;
+HWND Menubutton;
+HWND Forcedexitbutton;
+HWND hSendButton; // 보내기 버튼
+HWND hEdit1, hEdit2; // 편집 컨트롤
+DWORD WINAPI ChatThread(LPVOID arg);
+void PackPacket(char* _buf, PROTOCOL _protocol, int& _size)
+{
+	char* ptr = _buf;
+
+	_size = 0;
+
+	ptr = ptr + sizeof(_size);
+
+	memcpy(ptr, &_protocol, sizeof(_protocol));
+	ptr = ptr + sizeof(_protocol);
+	_size = _size + sizeof(_protocol);
+
+	ptr = _buf;
+	memcpy(ptr, &_size, sizeof(_size));
+
+	_size = _size + sizeof(_size);
+}
+void PackPacket(char* _buf, PROTOCOL _protocol, char* _str1, int& _size)
+{
+	char* ptr = _buf;
+	int strsize1 = strlen(_str1);
+
+	_size = 0;
+
+	ptr = ptr + sizeof(_size);
+
+	memcpy(ptr, &_protocol, sizeof(_protocol));
+	ptr = ptr + sizeof(_protocol);
+	_size = _size + sizeof(_protocol);
+
+	memcpy(ptr, &strsize1, sizeof(strsize1));
+	ptr = ptr + sizeof(strsize1);
+	_size = _size + sizeof(strsize1);
+
+	memcpy(ptr, _str1, strsize1);
+	ptr = ptr + strsize1;
+	_size = _size + strsize1;
+
+	ptr = _buf;
+	memcpy(ptr, &_size, sizeof(_size));
+
+	_size = _size + sizeof(_size);
+}
+void UnPackPacket(char* _buf, RESULT& _result, char* _str1)
+{
+	int strsize1;
+
+	char* ptr = _buf + sizeof(PROTOCOL);
+
+	memcpy(&_result, ptr, sizeof(_result));
+	ptr = ptr + sizeof(_result);
+
+	memcpy(&strsize1, ptr, sizeof(strsize1));
+	ptr = ptr + sizeof(strsize1);
+
+	memcpy(_str1, ptr, strsize1);
+	ptr = ptr + strsize1;
+}
+
+void PackPacket(char* _buf, PROTOCOL _protocol, char* _str1, char* _str2, char* _str3, int& _size)
+{
+	char* ptr = _buf;
+	int strsize1 = strlen(_str1);
+	int strsize2 = strlen(_str2);
+	int strsize3 = strlen(_str3);
+
+	_size = 0;
+
+	ptr = ptr + sizeof(_size);
+
+	memcpy(ptr, &_protocol, sizeof(_protocol));
+	ptr = ptr + sizeof(_protocol);
+	_size = _size + sizeof(_protocol);
+
+	memcpy(ptr, &strsize1, sizeof(strsize1));
+	ptr = ptr + sizeof(strsize1);
+	_size = _size + sizeof(strsize1);
+
+	memcpy(ptr, _str1, strsize1);
+	ptr = ptr + strsize1;
+	_size = _size + strsize1;
+
+	memcpy(ptr, &strsize2, sizeof(strsize2));
+	ptr = ptr + sizeof(strsize2);
+	_size = _size + sizeof(strsize2);
+
+	memcpy(ptr, _str2, strsize2);
+	ptr = ptr + strsize2;
+	_size = _size + strsize2;
+
+	memcpy(ptr, &strsize3, sizeof(strsize3));
+	ptr = ptr + sizeof(strsize3);
+	_size = _size + sizeof(strsize3);
+
+	memcpy(ptr, _str3, strsize3);
+	ptr = ptr + strsize3;
+	_size = _size + strsize3;
+
+	ptr = _buf;
+	memcpy(ptr, &_size, sizeof(_size));
+
+	_size = _size + sizeof(_size);
+}
+
+void PackPacket(char* _buf, PROTOCOL _protocol, char* _str1, char* _str2, int& _size)
+{
+	char* ptr = _buf;
+	int strsize1 = strlen(_str1);
+	int strsize2 = strlen(_str2);
+
+	_size = 0;
+
+	ptr = ptr + sizeof(_size);
+
+	memcpy(ptr, &_protocol, sizeof(_protocol));
+	ptr = ptr + sizeof(_protocol);
+	_size = _size + sizeof(_protocol);
+
+	memcpy(ptr, &strsize1, sizeof(strsize1));
+	ptr = ptr + sizeof(strsize1);
+	_size = _size + sizeof(strsize1);
+
+	memcpy(ptr, _str1, strsize1);
+	ptr = ptr + strsize1;
+	_size = _size + strsize1;
+
+	memcpy(ptr, &strsize2, sizeof(strsize2));
+	ptr = ptr + sizeof(strsize2);
+	_size = _size + sizeof(strsize2);
+
+	memcpy(ptr, _str2, strsize2);
+	ptr = ptr + strsize2;
+	_size = _size + strsize2;
+
+	ptr = _buf;
+	memcpy(ptr, &_size, sizeof(_size));
+
+	_size = _size + sizeof(_size);
+}
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, int nCmdShow)
+{
+	// 이벤트 생성
+	hReadEvent = CreateEvent(NULL, FALSE, TRUE, NULL);
+	if(hReadEvent == NULL) return 1;
+	hWriteEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	if(hWriteEvent == NULL) return 1;
+
+	// 소켓 통신 스레드 생성
+	CreateThread(NULL, 0, ClientMain, NULL, 0, NULL);
+	CreateThread(NULL, 0, ChatThread, NULL, 0, NULL);
+
+	// 대화상자 생성
+	DialogBox(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, DlgProc);
+
+	// 이벤트 제거
+	CloseHandle(hReadEvent);
+	CloseHandle(hWriteEvent);
+
+	// closesocket()
+	closesocket(sock);
+
+	// 윈속 종료
+	WSACleanup();
+	return 0;
+}
+
+// 대화상자 프로시저
+BOOL CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch(uMsg){
+	case WM_INITDIALOG:
+		state = STATE::LOGIN;
+		hEdit1 = GetDlgItem(hDlg, IDC_EDIT1);
+		hEdit2 = GetDlgItem(hDlg, IDC_EDIT2);
+		hSendButton = GetDlgItem(hDlg, IDOK);
+		Menubutton = GetDlgItem(hDlg, IDC_MENU);
+		Forcedexitbutton = GetDlgItem(hDlg, IDC_FORCEDEXIT);
+		Whisperbutton = GetDlgItem(hDlg, IDC_WHISPER);
+		SendMessage(hEdit1, EM_SETLIMITTEXT, BUFSIZE, 0);
+		DisplayText("<<메뉴>>\n");
+		DisplayText("1. 회원가입\n");
+		DisplayText("2. 로그인\n");
+		DisplayText("3. 종료\n");
+
+		EnableWindow(Whisperbutton, FALSE);
+		EnableWindow(Forcedexitbutton, FALSE);
+		EnableWindow(Menubutton, FALSE);
+		return TRUE;
+	case WM_COMMAND:
+		switch(LOWORD(wParam))
+		{
+		case IDOK:
+			EnableWindow(hSendButton, FALSE); // 보내기 버튼 비활성화
+			WaitForSingleObject(hReadEvent, INFINITE); // 읽기 완료 기다리기
+			GetDlgItemText(hDlg, IDC_EDIT1, buf, BUFSIZE+1);
+			if (logincount == 0 && (choice == JOIN_MENU || choice == LOGIN_MENU) && state==STATE::LOGIN)
+			{
+				DisplayText("아이디입력됨");
+				strcpy(logininfo.ID, buf);
+				logincount++;
+			}
+			else if (logincount == 1 && (choice == JOIN_MENU || choice == LOGIN_MENU) && state == STATE::LOGIN)
+			{
+				DisplayText("비번입력됨");
+				strcpy(logininfo.PW, buf);
+				logincount++;
+			}
+			else if (logincount == 2 && choice == JOIN_MENU && state == STATE::LOGIN)
+			{
+				DisplayText("닉네임입력됨");
+				strcpy(logininfo.NICKNAME, buf);
+				logincount++;
+			}
+			else if (loominfo.loomnamecheck)
+			{
+				strcpy(loominfo.Loomname, buf);
+			}
+			SetEvent(hWriteEvent); // 쓰기 완료 알리기
+			SetFocus(hEdit1);
+			SetDlgItemText(hDlg, IDC_EDIT1, "");
+			SendMessage(hEdit1, EM_SETSEL, 0, -1);
+			return TRUE;
+		case IDC_MENU:
+			EnableWindow(hSendButton, FALSE); // 보내기 버튼 비활성화
+			state = STATE::SHOWMENU;
+			DisplayText("\n1.방 생성하기\r2.방 입장하기\r3.방 리스트보기\n");
+			first = false;
+			EnableWindow(hSendButton, TRUE);
+			SendMessage(hEdit1, EM_SETSEL, 0, -1);
+			return TRUE;
+		case IDCANCEL:
+			EndDialog(hDlg, IDCANCEL);
+			return TRUE;
+		}
+		return FALSE;
+	}
+	return FALSE;
+}
+
+// 편집 컨트롤 출력 함수
+void DisplayText(char *fmt, ...)
+{
+	va_list arg;
+	va_start(arg, fmt);
+
+	char cbuf[BUFSIZE+256];
+	vsprintf(cbuf, fmt, arg);
+
+	int nLength = GetWindowTextLength(hEdit2);
+	SendMessage(hEdit2, EM_SETSEL, nLength, nLength);
+	SendMessage(hEdit2, EM_REPLACESEL, FALSE, (LPARAM)cbuf);
+
+	va_end(arg);
+}
+
+// 소켓 함수 오류 출력 후 종료
+void err_quit(char *msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	MessageBox(NULL, (LPCTSTR)lpMsgBuf, msg, MB_ICONERROR);
+	LocalFree(lpMsgBuf);
+	exit(1);
+}
+
+// 소켓 함수 오류 출력
+void err_display(char *msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	DisplayText("[%s] %s", msg, (char *)lpMsgBuf);
+	LocalFree(lpMsgBuf);
+}
+
+// 사용자 정의 데이터 수신 함수
+int recvn(SOCKET s, char *buf, int len, int flags)
+{
+	int received;
+	char *ptr = buf;
+	int left = len;
+
+	while(left > 0){
+		received = recv(s, ptr, left, flags);
+		if(received == SOCKET_ERROR)
+			return SOCKET_ERROR;
+		else if(received == 0)
+			break;
+		left -= received;
+		ptr += received;
+	}
+
+	return (len - left);
+}
+
+// TCP 클라이언트 시작 부분
+DWORD WINAPI ClientMain(LPVOID arg)
+{
+	int retval;
+
+	// 윈속 초기화
+	WSADATA wsa;
+	if(WSAStartup(MAKEWORD(2,2), &wsa) != 0)
+		return 1;
+
+	// socket()
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(sock == INVALID_SOCKET) err_quit("socket()");
+
+	// connect()
+	SOCKADDR_IN serveraddr;
+	ZeroMemory(&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
+	if(retval == SOCKET_ERROR) err_quit("connect()");
+
+	// 서버와 데이터 통신
+	while(1)
+	{
+
+		if (!PacketRecv(sock, buf))
+		{
+			break;
+		}
+
+		PROTOCOL protocol;
+		GetProtocol(buf, protocol);
+		RESULT result;
+		char msg[BUFSIZE];
+		memset(msg, 0, sizeof(msg));
+		UnPackPacket(buf, result, msg);
+		DisplayText("%s\n", msg);
+
+		switch (protocol)
+		{			
+		case JOIN_RESULT:
+			DisplayText("<<메뉴>>\n");
+			DisplayText("1. 회원가입\n");
+			DisplayText("2. 로그인\n");
+			DisplayText("3. 종료\n");
+			break;
+		case LOGIN_RESULT:
+			switch (result)
+			{
+			case ID_ERROR:
+			case PW_ERROR:
+				DisplayText("<<메뉴>>\n");
+				DisplayText("1. 회원가입\n");
+				DisplayText("2. 로그인\n");
+				DisplayText("3. 종료\n");
+				first = false;
+				logincount = 0;
+				choice = 0;
+				break;
+			case LOGIN_SUCCESS:
+				first = false;
+				EnableWindow(Menubutton, true);
+				break;
+			}
+			break;	
+		case CREATE_ROOM:
+
+			break;
+		}
+	}
+
+	return 0;
+}
+
+// 입력을 담당할 쓰레드
+DWORD WINAPI ChatThread(LPVOID arg)
+{
+	int retval;
+	int size;
+	// 데이터 통신에 사용할 변수
+	//char buf[BUFSIZE];
+	char msg[BUFSIZE];
+
+	int count = 0;
+
+	// 서버와 데이터 통신
+	while (1) 
+	{
+		WaitForSingleObject(hWriteEvent, INFINITE); // 쓰기 완료 기다리기;
+		// 문자열 길이가 0이면 보내지 않음
+		if (strlen(buf) == 0) 
+		{
+			EnableWindow(hSendButton, TRUE); // 보내기 버튼 활성화
+			SetEvent(hReadEvent); // 읽기 완료 알리기
+			continue;
+		}
+
+		if (!first)
+		{
+			choice = atoi(buf);		
+			first = true;
+		}
+
+		switch (state) // 현재 클라이언트의 스테이트에 따라서 진행.
+		{
+		case STATE::LOGIN:
+		{			
+			switch (choice)
+			{
+			case JOIN_MENU:	
+				if (logincount == 0)
+				{
+					DisplayText("ID 입력하세요\n");
+				}
+				else if (logincount == 1)
+				{
+					DisplayText("PW 입력하세요\n");
+				}
+				else if (logincount == 2)
+				{
+					DisplayText("NICKNAME 입력하세요\n");
+				}
+				else if (logincount == 3)
+				{
+					DisplayText("팩킹해서보냄\n");
+					DisplayText(logininfo.ID);
+					DisplayText(logininfo.PW);
+					DisplayText(logininfo.NICKNAME);
+					PackPacket(buf, JOIN_INFO, logininfo.ID, logininfo.PW, logininfo.NICKNAME, size);
+					int retval = send(sock, buf, size, 0);
+					if (retval == SOCKET_ERROR)
+					{
+						err_display("send()");
+						break;
+					}
+					first = false;
+					logincount = 0;
+					choice = 0;
+					
+				}
+				break;
+			case LOGIN_MENU:
+				DisplayText("ID,PW 순차적으로 입력하세요\n");
+				if (logincount == 0)
+				{
+					DisplayText("ID 입력하세요\n");
+				}
+				else if (logincount == 1)
+				{
+					DisplayText("PW 입력하세요\n");
+				}
+				else if (logincount == 2)
+				{
+					DisplayText("팩킹해서보냄\n");
+					DisplayText(logininfo.ID);
+					DisplayText(logininfo.PW);				
+					PackPacket(buf, LOGIN_INFO, logininfo.ID, logininfo.PW, size);
+					int retval = send(sock, buf, size, 0);
+					if (retval == SOCKET_ERROR)
+					{
+						err_display("send()");
+						break;
+					}
+				}
+				break;
+			case EXIT_MENU:
+				break;
+			}
+			break;
+		}
+		case STATE::SHOWMENU:
+		
+			switch (choice)
+			{
+			case CREATE_MENU:
+				if (!loominfo.loomnamecheck)
+				{
+					DisplayText("\r생성할 방제목을 입력하세요.\r");
+					loominfo.loomnamecheck = true;
+				}
+				else if (loominfo.loomnamecheck)
+				{
+					PackPacket(buf, CREATE_ROOM, loominfo.Loomname, size);
+					int retval = send(sock, buf, size, 0);
+					if (retval == SOCKET_ERROR)
+					{
+						err_display("send()");
+						break;
+					}
+					choice = 0;
+					first = false;
+					loominfo.loomnamecheck = false;
+				}
+				break;
+			case SHOW_ROOM_MENU:
+				PackPacket(buf, SHOW_ROOM_INFO, size);
+				int retval = send(sock, buf, size, 0);
+				if (retval == SOCKET_ERROR)
+				{
+					err_display("send()");
+					break;
+				}
+				choice = 0;
+				first = false;
+
+				break;
+			}
+			break;
+		break;
+		}
+
+
+		EnableWindow(hSendButton, TRUE); // 보내기 버튼 활성화
+		SetEvent(hReadEvent); // 읽기 완료 알리기
+		// 다 끝났으면 이벤트를 활성화해서 다시 쓸수 있는 상황으로 돌려줌.
+	}
+
+	return 0;
+}
