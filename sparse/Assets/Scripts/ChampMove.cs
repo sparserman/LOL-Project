@@ -329,12 +329,21 @@ public class ChampMove : MonoBehaviour
             if(mob.attackTarget == null)
             {
                 mob.attackTarget = gameObject;
+                mob.HitCheck();
             }
         }
         else if (attackTarget.name == "BaronBase")
         {
             Baron_2 baron = attackTarget.GetComponent<Baron_2>();
             if(baron.attackTarget == null)
+            {
+                baron.attackTarget = gameObject;
+            }
+        }
+        else if (attackTarget.name == "Daron")
+        {
+            Baron_2 baron = attackTarget.GetComponent<Baron_2>();
+            if (baron.attackTarget == null)
             {
                 baron.attackTarget = gameObject;
             }
@@ -439,7 +448,7 @@ public class ChampMove : MonoBehaviour
             Debug.Log("W");
             GameObject cpyObj;
             cpyObj = Instantiate(WSkillObj, transform.position, Quaternion.identity);
-            cpyObj.transform.forward = new Vector3(destination.x, 90, destination.z);
+            cpyObj.transform.forward = new Vector3(0, 90, 0);
             cpyObj.SetActive(true);
 
             if(m_WSkillEffectCoroutine != null)
