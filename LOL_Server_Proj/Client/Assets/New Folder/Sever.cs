@@ -139,11 +139,13 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public class socket_data
     {
         public int msg;
         public short size;
         public short type;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
         public char[] data;
     }
 
