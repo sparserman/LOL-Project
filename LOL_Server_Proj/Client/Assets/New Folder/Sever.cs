@@ -33,6 +33,11 @@ public class Sever : SingleTonMonobehaviour<Sever>
     public string serverIp = "127.0.0.1";
     Socket clientSocket = null;
 
+    Queue<socket_data> s_que;
+    Queue<socket_data>r_que;
+
+    ManualResetEvent s_event;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -62,25 +67,41 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
     private void ThreadCreate()
     {
+        //샌드 쓰레드 생성
         Thread sendThread = new Thread(s_Thread);
         sendThread.Start();
         Debug.Log("Send쓰레드 실행");
+    }
 
-        //샌드 쓰레드 생성
+    private void s_Thread()
+    {
+        s_que = new Queue<socket_data>();
+        s_event = new ManualResetEvent(false);
 
+        //리시비 쓰레드 생성
         Thread recvThread = new Thread(r_Thread);
         recvThread.Start();
         Debug.Log("Recv쓰레드 실행");
 
-        //리시비 쓰레드 생성
-    }
-
-
-    private void s_Thread()
-    {
         Packpaket();
 
+        while(true)
+        {
+            if (s_event.WaitOne() == true)  // 이벤트 발생시
+            {
+                for (int i = 0; i < s_que.Count; i++)
+                {
+                    socket_data temp = new socket_data();
+                    temp = s_que.Dequeue();
+                    //Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
+                }
+            }
 
+            //if() 스레드 탈출 조건 걸기
+            {
+
+            }
+        }
     }
 
     private void r_Thread()
@@ -88,6 +109,10 @@ public class Sever : SingleTonMonobehaviour<Sever>
         while(true)
         {
             Recv();
+
+            // 큐에서 리시브 빼서 적용하기
+
+            // 스레드 탈출 조건 걸기
         }
        
     }
@@ -117,7 +142,6 @@ public class Sever : SingleTonMonobehaviour<Sever>
             return;
         }
 
-
         Sever.Instance.clientSocket.Receive(m_packet, sizeof(int), retval, SocketFlags.None);
 
         m_size = BitConverter.ToInt32(m_packet, 0);
@@ -125,10 +149,8 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
         Sever.Instance.clientSocket.Receive(m_packet, m_size, retval, SocketFlags.None);
 
-
-
+        // 언패킹하고 큐에 넣기
     }
-
 
     private void OnApplicationQuit()
     {
@@ -170,20 +192,25 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
     private void StruckToBytes(object obj, ref byte[] packet)
     {
-        int size = Marshal.SizeOf(obj);
-
-        byte[] temp = new byte[size];
-        int k = sizeof(int);
-        byte[] ktemp = new byte[k];
-        ktemp = BitConverter.GetBytes(k);
-
-        packet = new byte[size + sizeof(int)];
+        int size = Marshal.SizeOf(obj) + sizeof(int);
+        //packet = new byte[size];
         IntPtr ptr = Marshal.AllocHGlobal(size + 1);
 
+        int k = sizeof(int);  // 인트 크기
+        byte[] kk = new byte[k];  // 바이트 크기
+        byte[] kkk = new byte[size];  // 배열 크기
+
+        kk = BitConverter.GetBytes(k);  // kk에 인트 넣기
+
+        packet = new byte[kkk.Length + size];
+
         Marshal.StructureToPtr(obj, ptr, false);
-        Marshal.Copy(ptr, temp, 0, size);
-        Buffer.BlockCopy(temp, 0, ktemp, 0, sizeof(int));
-        Buffer.BlockCopy(packet, 0, temp, 0, size + sizeof(int));
+        Marshal.Copy(ptr, kkk, 0, size);
+
+        Array.Copy(kk, 0, packet, 0, kk.Length);
+        Array.Copy(kkk, 0, packet, 0, kkk.Length);
+
+        //Marshal.Copy(ptr, packet, 0, size);
         Marshal.FreeHGlobal(ptr);
     }
 

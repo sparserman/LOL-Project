@@ -1,1 +1,1 @@
-C:\Github\LOL-Project\LOL_Server_Proj\Client
+C:\git\LOL-Project\LOL_Server_Proj\Client

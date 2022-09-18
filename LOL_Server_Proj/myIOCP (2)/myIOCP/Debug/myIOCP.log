@@ -1,0 +1,31 @@
+﻿  C_CriticalSection.cpp
+  C_State.cpp
+  Global.cpp
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'LPCWSTR'
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): message : consider using '%ls' in the format string
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): message : consider using '%lls' in the format string
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): message : consider using '%Ls' in the format string
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): message : consider using '%ws' in the format string
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 2 has type 'TCHAR *'
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): message : consider using '%ls' in the format string
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): message : consider using '%lls' in the format string
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): message : consider using '%Ls' in the format string
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Global.cpp(15,9): message : consider using '%ws' in the format string
+  IOCP.cpp
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\IOCP.cpp(91,7): warning C4101: 'result': unreferenced local variable
+  main.cpp
+  M_DataBase.cpp
+  M_LogFile.cpp
+  M_LogJoin.cpp
+  M_main.cpp
+  M_Protocol.cpp
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\M_Protocol.cpp(25,23): warning C4018: '<': signed/unsigned mismatch
+  Packet.cpp
+  M_Session.cpp
+  Session.cpp
+  Socket.cpp
+  Generating Code...
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\M_main.cpp(104): warning C4715: 'Manager_main::v_send': not all control paths return a value
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\M_main.cpp(17): warning C4715: 'Manager_main::initMain': not all control paths return a value
+C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\IOCP.cpp(28): warning C4715: 'IOCP::initIOCP': not all control paths return a value
+  myIOCP.vcxproj -> C:\git\LOL-Project\LOL_Server_Proj\myIOCP (2)\myIOCP\Debug\myIOCP.exe
