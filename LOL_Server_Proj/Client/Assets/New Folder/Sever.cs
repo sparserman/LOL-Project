@@ -171,11 +171,19 @@ public class Sever : SingleTonMonobehaviour<Sever>
     private void StruckToBytes(object obj, ref byte[] packet)
     {
         int size = Marshal.SizeOf(obj);
-        packet = new byte[size];
+
+        byte[] temp = new byte[size];
+        int k = sizeof(int);
+        byte[] ktemp = new byte[k];
+        ktemp = BitConverter.GetBytes(k);
+
+        packet = new byte[size + sizeof(int)];
         IntPtr ptr = Marshal.AllocHGlobal(size + 1);
 
         Marshal.StructureToPtr(obj, ptr, false);
-        Marshal.Copy(ptr, packet, 0, size);
+        Marshal.Copy(ptr, temp, 0, size);
+        Buffer.BlockCopy(temp, 0, ktemp, 0, sizeof(int));
+        Buffer.BlockCopy(packet, 0, temp, 0, size + sizeof(int));
         Marshal.FreeHGlobal(ptr);
     }
 
