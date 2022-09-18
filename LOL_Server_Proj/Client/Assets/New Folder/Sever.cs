@@ -76,13 +76,14 @@ public class Sever : SingleTonMonobehaviour<Sever>
     }
 
 
-    private static void s_Thread()
+    private void s_Thread()
     {
+        Packpaket();
 
-        
+
     }
 
-    private static void r_Thread()
+    private void r_Thread()
     {
         while(true)
         {
@@ -152,7 +153,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         s_data.data = new char[100];
         string strData = "testString";
         s_data.msg = 1;
-        s_data.size = (short)(Marshal.SizeOf(typeof(socket_data)));
+        s_data.size = (short)Marshal.SizeOf(typeof(socket_data));
         s_data.type = 5;
 
         int len = strData.Length;
@@ -162,6 +163,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
         byte[] packet = new byte[1];
         StruckToBytes(s_data, ref packet);
+        //Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
     }
 
     private void StruckToBytes(object obj, ref byte[] packet)
