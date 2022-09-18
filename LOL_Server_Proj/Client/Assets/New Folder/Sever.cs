@@ -7,6 +7,25 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+
+using System.Runtime.InteropServices;
+static class min
+{
+    public const int bufsize = 1024;
+
+    // main 1~16
+    public const int MAIN_LOGJOIN = 2;
+
+    // sub 1~16
+    public const int SUB_LOGJOIN_LOGIN = 1;
+
+    // detail 2의 16승까지 배수만
+    public const int DETALI_LOGIN_RESULT = 1;
+    public const int DETALI_JOIN_RESULT = 2;
+    public const int DETALI_LOGIN_SUCCESS = 4;
+    public const int DETALI_JOIN_SUCCESS = 8;
+}
+
 public class Sever : SingleTonMonobehaviour<Sever>
 {
     // Start is called before the first frame update
@@ -119,8 +138,57 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
     }
 
-   
+    public class socket_data
+    {
+        public int msg;
+        public short size;
+        public short type;
+        public char[] data;
+    }
+
+    private void Packpaket()
+    {
+        socket_data s_data = new socket_data();
+        s_data.data = new char[100];
+        string strData = "testString";
+        s_data.msg = 1;
+        s_data.size = (short)(Marshal.SizeOf(typeof(socket_data)));
+        s_data.type = 5;
+
+        int len = strData.Length;
+        for(int i =0;i<len;i++)
+        {
+            s_data.data[i] = strData[i];
+        }
+        byte[] packet = new byte[1];
+        StruckToBytes(s_data, ref packet);
+    }
+
+    private void StruckToBytes(object obj, ref byte[] packet)
+    {
+        int size = Marshal.SizeOf(obj);
+        packet = new byte[size];
+        IntPtr ptr = Marshal.AllocHGlobal(size + 1);
+
+        Marshal.StructureToPtr(obj, ptr, false);
+        Marshal.Copy(ptr, packet, 0, size);
+        Marshal.FreeHGlobal(ptr);
+    }
+
+    public T ByteArrayToStruct<T>(byte[] buffer) where T : struct
+    {
+        int size = Marshal.SizeOf(typeof(T));
+        if (size > buffer.Length)
+        {
+            throw new Exception();
+        }
+
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.Copy(buffer, 0, ptr, size);
+        T obj = (T)Marshal.PtrToStructure(ptr, typeof(T));
+        Marshal.FreeHGlobal(ptr);
+        return obj;
+    }
 
     // Update is called once per frame
-  
 }
