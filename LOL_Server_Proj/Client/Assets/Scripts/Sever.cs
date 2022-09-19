@@ -187,7 +187,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
         byte[] packet = new byte[1];
         StruckToBytes(s_data, ref packet);
-        //Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
+        Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
     }
 
     private void StruckToBytes(object obj, ref byte[] packet)
