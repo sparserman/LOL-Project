@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 2
   tags:
   - Wall
+  - Fire
+  - Bush
+  - Red
+  - Mob
+  - Bule
   layers:
   - Default
   - TransparentFX
@@ -14,7 +19,7 @@ TagManager:
   - UI
   - Map_Ground
   - Wall
-  - 
+  - Mob
   - 
   - 
   - 
