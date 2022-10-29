@@ -11,6 +11,10 @@ public class Baron : MonoBehaviour
     
     [SerializeField]
     private BaronShotObj AttackEffect = null;     // 공격 이펙트
+    [SerializeField]
+    private GameObject BaronSkillEffect1 = null;    // 스킬 범위
+    [SerializeField]
+    private GameObject BaronSkillTarget = null;    // 스킬 타겟
 
     private float time = 0;
     [SerializeField]
@@ -39,7 +43,7 @@ public class Baron : MonoBehaviour
         if (attackTarget != null && patience != 0)
         {
             // 기본 공격 목표에 도착 시
-            if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 7f)
+            if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 8f)
             {
                 // 공격 가능 상태 일때
                 if (attackCheck)
@@ -61,6 +65,9 @@ public class Baron : MonoBehaviour
                     {
                         ani.Play("model|sru_baron_spell2_channel_model", 0);
                         ani.SetTrigger("Skill1");
+
+                        BaronSkill1();  // 바론 스킬 범위
+
                         attackCount = 0;
                     }
                     else
@@ -103,5 +110,35 @@ public class Baron : MonoBehaviour
         attackCheck = true;
 
         m_AttackDelayCoroutine = null;
+    }
+
+    public void AttackEvent(int n)
+    {
+        switch (n)
+        {
+            case 0:
+                Debug.Log("shot");
+                BaronShotObj cpyObj;
+                cpyObj = Instantiate<BaronShotObj>(AttackEffect, ThroatPos.position, Quaternion.identity);
+                cpyObj.gameObject.SetActive(true);
+                cpyObj.SetTarget(attackTarget);
+                break;
+            case 1:
+                Debug.Log("shot");
+                BaronShotObj cpyObj2;
+                BaronSkillTarget.gameObject.SetActive(true);
+                cpyObj2 = Instantiate<BaronShotObj>(AttackEffect, ThroatPos.position, Quaternion.identity);
+                cpyObj2.gameObject.SetActive(true);
+                cpyObj2.SetTarget(BaronSkillTarget);
+                break;
+        }
+    }
+
+    public void BaronSkill1()
+    {
+        BaronSkillEffect1.transform.GetChild(1).gameObject.SetActive(false);
+        BaronSkillEffect1.gameObject.SetActive(true);
+        BaronSkillEffect1.transform.forward = attackTarget.transform.position - transform.position;
+        BaronSkillEffect1.transform.position = transform.position;
     }
 }

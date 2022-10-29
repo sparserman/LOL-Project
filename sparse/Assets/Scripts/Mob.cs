@@ -122,6 +122,8 @@ public class Mob : MonoBehaviour
             ani.SetInteger("AttackMotion", 0);
             agent.speed = speed * 0.01f;
 
+            ani.Play("Run");
+
             ChampSetDestination(firstPos);
 
             if(Vector3.Distance(transform.position, firstPos) <= 0.5f)
