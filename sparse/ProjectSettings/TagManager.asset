@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Wall
   - Mob
+  - Bush
+  - Red
+  - Blue
   layers:
   - Default
   - TransparentFX
