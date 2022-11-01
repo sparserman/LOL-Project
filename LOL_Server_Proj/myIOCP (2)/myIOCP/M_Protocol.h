@@ -26,13 +26,10 @@ public:
     ~Manager_Protocol() { cleanList(); };
 
     void cleanList() { if (detail_list != nullptr)delete[] detail_list; list_size = 0; };
-    void Packing_prot(unsigned int p_main, unsigned int p_sub, unsigned int p_args, ...);
+    unsigned int Packing_prot(unsigned int p_main, unsigned int p_sub, unsigned int p_args, ...);
     void Unpacking_prot(unsigned int p_prot);
     bool* UnpackingDetail(unsigned int args);
 };
 
-void ÃÖÀç¿í()
-{
-    Manager_Protocol::getInstance().Packing_prot(MAIN_LOGJOIN, SUB_LOGJOIN_LOGIN, 2, DETALI_LOGIN_RESULT, DETALI_LOGIN_SUCCESS);
-}
+
 

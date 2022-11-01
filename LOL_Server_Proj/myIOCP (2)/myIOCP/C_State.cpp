@@ -1,11 +1,13 @@
 #include "C_State.h"
 #include "Session.h"
+#include "M_Protocol.h"
 
 //STATE_INIT ¸®½Ãºê »÷µå
 void STATE_INIT::recv_sta()
 {
 	printf("STATE_INIT recv\n");
 	Manager_LOGJOIN::getInstance().PackPacket(client, PROT_LJ_JOIN_INFO, NODATA, JOIN_SUCCESS_MSG);
+	Manager_Protocol::getInstance().Packing_prot()
 }
 
 void STATE_INIT::send_sta()

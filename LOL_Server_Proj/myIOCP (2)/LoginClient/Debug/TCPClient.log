@@ -1,0 +1,5 @@
+﻿cl : 명령줄 warning D9035: 'Gm' 옵션은 더 이상 사용되지 않으므로 이후 릴리스에서 제거될 예정입니다.
+  TCPClient.cpp
+D:\Project\myIOCP (2)\LoginClient\TCPClient.cpp(287,31): warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+TCPClient.obj : warning LNK4075: '/EDITANDCONTINUE'이(가) '/SAFESEH' 사양으로 인해 무시됩니다.
+  TCPClient.vcxproj -> D:\Project\myIOCP (2)\LoginClient\Debug\TCPClient.exe

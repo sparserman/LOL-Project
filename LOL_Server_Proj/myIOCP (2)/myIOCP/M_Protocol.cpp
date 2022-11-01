@@ -1,6 +1,6 @@
 #include "M_Protocol.h"
 
-void Manager_Protocol::Packing_prot(unsigned int p_main, unsigned int p_sub, unsigned int p_args, ...)
+unsigned int Manager_Protocol::Packing_prot(unsigned int p_main, unsigned int p_sub, unsigned int p_args, ...)
 {
     // 프로토콜 패킹
     unsigned int prot = 0;
@@ -33,6 +33,8 @@ void Manager_Protocol::Packing_prot(unsigned int p_main, unsigned int p_sub, uns
     temp = 0;
 
     printf("prot : %d\n", prot);
+
+    return prot;
 }
 
 void Manager_Protocol::Unpacking_prot(unsigned int p_prot)

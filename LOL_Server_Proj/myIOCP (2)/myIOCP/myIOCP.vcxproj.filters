@@ -63,6 +63,12 @@
     <ClInclude Include="M_Protocol.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Sector.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="M_Sector.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Socket.cpp">
@@ -105,6 +111,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="M_Protocol.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Sector.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="M_Sector.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

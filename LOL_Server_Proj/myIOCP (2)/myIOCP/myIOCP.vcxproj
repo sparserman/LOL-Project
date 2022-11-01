@@ -147,6 +147,8 @@
     <ClInclude Include="M_LogFile.h" />
     <ClInclude Include="M_main.h" />
     <ClInclude Include="M_Protocol.h" />
+    <ClInclude Include="M_Sector.h" />
+    <ClInclude Include="Sector.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="T_LinkedList.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -173,8 +175,10 @@
     </ClCompile>
     <ClCompile Include="M_main.cpp" />
     <ClCompile Include="M_Protocol.cpp" />
+    <ClCompile Include="M_Sector.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="M_Session.cpp" />
+    <ClCompile Include="Sector.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Socket.cpp" />
   </ItemGroup>
