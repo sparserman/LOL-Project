@@ -118,4 +118,9 @@ public class Minion : MonoBehaviour
             }
         }
     }
+
+    public void MinionAttackEvent()
+    {
+        Debug.Log("미니언 공격");
+    }
 }

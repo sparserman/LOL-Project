@@ -72,7 +72,7 @@ public class PoppyPassiveSkill : MonoBehaviour
             hit = true;
             // 중간 지점
             droppos = (target.transform.position + Champ.transform.position) * 0.5f;
-            droppos.y = 0.5f;
+            droppos.y = transform.position.y + 0.5f;
 
             Debug.DrawLine((target.transform.position + Champ.transform.position) * 0.5f
                 , droppos + transform.right * 5f, Color.green, 3f);

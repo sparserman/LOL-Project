@@ -21,7 +21,7 @@ public class Shield : MonoBehaviour
         Vector3 temppos;
         temppos = transform.position;
         temppos = poppy.transform.position;
-        temppos.y = 1;
+        temppos.y = poppy.transform.position.y + 1;
 
         transform.position = temppos;
     }

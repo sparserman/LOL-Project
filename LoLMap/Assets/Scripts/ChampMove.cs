@@ -50,11 +50,11 @@ public class ChampMove : MonoBehaviour
     private bool RSkillCool = true;          // R 스킬 사용 가능 상태 (쿨타임)
 
     [SerializeField]
-    private LayerMask layerMask;        // 벽 전용
+    private LayerMask wallMask;        // 벽 전용
     [SerializeField]
     private LayerMask enemyMask;        // 적 전용
     [SerializeField]
-    private LayerMask MapMask;        // 맵 전용
+    private LayerMask mapMask;        // 맵 전용
 
 
     public float deltaRotation;     // 회전 속도
@@ -162,7 +162,7 @@ public class ChampMove : MonoBehaviour
                 clickCheck = false;
                 // 마우스 이동용 위치 찾기
                 RaycastHit hit;
-                if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, MapMask))
+                if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
                 {
                     // 목표지 설정
                     ChampSetDestination(hit.point);
@@ -399,10 +399,10 @@ public class ChampMove : MonoBehaviour
             case 0:
                 PoppyPassiveSkill cpyObj;
                 cpyObj = Instantiate<PoppyPassiveSkill>(PassiveSkillObj
-                    , new Vector3(transform.position.x, 1, transform.position.z), Quaternion.identity);
+                    , new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), Quaternion.identity);
                 cpyObj.transform.forward = attackTarget.transform.position;
                 cpyObj.transform.rotation = new Quaternion(0,0,0,90);
-                cpyObj.gameObject. SetActive(true);
+                cpyObj.gameObject.SetActive(true);
                 cpyObj.Init(attackTarget, this);
                 // 방패 제거
                 Shield.SetActive(false);
@@ -433,7 +433,7 @@ public class ChampMove : MonoBehaviour
 
             RaycastHit hit;
             
-            if(Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, MapMask))
+            if(Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
             {
                 SetDir(hit.point);
             }
@@ -526,12 +526,8 @@ public class ChampMove : MonoBehaviour
         {
             if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
             {
-                ESkillCool = false;
-                moveStop = true;
                 SetDir(hit.point);
                 eSkillTarget = hit.collider.gameObject;
-
-                StartCoroutine(SkillCooltime(3));
             }
             else
             {
@@ -541,6 +537,10 @@ public class ChampMove : MonoBehaviour
 
         if(eSkillTarget != null)
         {
+            if (moveStop || !ESkillCool)
+            {
+                return;
+            }
             // 사거리 안에 없을 때 이동
             if (Vector3.Distance(transform.position, eSkillTarget.transform.position) > 5f)
             {
@@ -580,17 +580,21 @@ public class ChampMove : MonoBehaviour
 
                 // 뒤에 벽 확인
                 RaycastHit MapHit;
-                if (Physics.Raycast(eSkillTarget.transform.position, transform.forward, out MapHit, 5f, MapMask))
+                if (Physics.Raycast(eSkillTarget.transform.position, transform.forward, out MapHit, 5f, wallMask))
                 {
                     // 벽으로 이동
                     m_MoveCoroutine = StartCoroutine(SetDirectionMove(MapHit.point,
                         Vector3.Distance(transform.position, MapHit.transform.position) * 0.03f));
+
+                    Debug.Log("뒤에 벽 있음");
                 }
                 else
                 {
                     // 빈곳으로 이동
                     m_MoveCoroutine = StartCoroutine(SetDirectionMove(eSkillTarget.transform.position + (transform.forward * 4),
                         Vector3.Distance(transform.position, eSkillTarget.transform.position + (transform.forward * 4)) * 0.04f));
+
+                    Debug.Log("뒤에 벽 없음");
                 }
             }
         }
@@ -600,6 +604,7 @@ public class ChampMove : MonoBehaviour
     Coroutine m_MoveCoroutine = null;
     IEnumerator SetDirectionMove( Vector3 p_targetwpos, float p_sec )
     {
+        Debug.Log("코루틴 시작");
         Vector3 Currpos = transform.position;
         Vector3 targetpos = p_targetwpos;
         float t = 0;
@@ -608,10 +613,14 @@ public class ChampMove : MonoBehaviour
 
         bool flag = false;
 
+        // 쿨타임
+        ESkillCool = false;
+        moveStop = true;
+
         while (true)
         {
             yield return null;
-
+            Debug.Log("코루틴 재생중");
             t += divval * Time.deltaTime;
             temppos = Vector3.Lerp(Currpos, targetpos, t);
             transform.position = temppos - transform.forward;
@@ -646,6 +655,8 @@ public class ChampMove : MonoBehaviour
         eSkillTarget = null;
 
         ani.SetBool("isESkill", false);
+
+        StartCoroutine(SkillCooltime(3));
     }
 
 
@@ -738,7 +749,7 @@ public class ChampMove : MonoBehaviour
 
         RaycastHit hit;
 
-        if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, MapMask))
+        if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
         {
             SetDir(hit.point);
         }
