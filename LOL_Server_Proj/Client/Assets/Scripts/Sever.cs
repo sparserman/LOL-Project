@@ -34,7 +34,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
     Socket clientSocket = null;
 
     Queue<socket_data> s_que;
-    Queue<socket_data>r_que;
+    Queue<socket_data> r_que;
 
     ManualResetEvent s_event;
 
@@ -65,6 +65,31 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
     }
 
+
+
+    private void Update()
+    {
+        
+    }
+
+    public void SendQueCheck(Sever sever)
+    {
+        if(sever.s_que.Count > 0)
+        {
+            socket_data data = s_que.Dequeue();
+            Send(data);
+        }
+    }
+
+    public void RecvQueCheck(Sever sever)
+    {
+        if (sever.r_que.Count > 0)
+        {
+            socket_data data = r_que.Dequeue();
+            //리시브된걸 언패킹후 처리
+        }
+    }
+
     private void ThreadCreate()
     {
         //샌드 쓰레드 생성
@@ -72,6 +97,8 @@ public class Sever : SingleTonMonobehaviour<Sever>
         sendThread.Start();
         Debug.Log("Send쓰레드 실행");
     }
+
+
 
     private void s_Thread()
     {
@@ -149,6 +176,9 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
         Sever.Instance.clientSocket.Receive(m_packet, m_size, retval, SocketFlags.None);
 
+
+
+        Sever.Instance.r_que.Enqueue(/*언패킹해서 만든 socket_data*/);
         // 언패킹하고 큐에 넣기
     }
 
