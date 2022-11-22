@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 static class min
 {
     public const int bufsize = 1024;
+    public const int PROT_BIT_SIZE = 8;
 
     // main 1~16
     public const int MAIN_LOGJOIN = 2;
@@ -29,19 +30,21 @@ static class min
 public class Sever : SingleTonMonobehaviour<Sever>
 {
     // Start is called before the first frame update
-    
+
     public string serverIp = "127.0.0.1";
     Socket clientSocket = null;
 
     Queue<socket_data> s_que;
     Queue<socket_data> r_que;
 
+
+
     ManualResetEvent s_event;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+
         //클라이언트에서 사용할 소켓 준비
         this.clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         Debug.Log("Sever 접속시도");
@@ -65,19 +68,18 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
     }
 
-
-
     private void Update()
     {
-        
+        SendQueCheck(this);  // %%%%%%%%%%% 이벤트로 할껀데 필요한지 생각해보기
+        RecvQueCheck(this);
     }
 
     public void SendQueCheck(Sever sever)
     {
-        if(sever.s_que.Count > 0)
+        if (sever.s_que.Count > 0)
         {
             socket_data data = s_que.Dequeue();
-            Send(data);
+            //Send(data);
         }
     }
 
@@ -99,7 +101,6 @@ public class Sever : SingleTonMonobehaviour<Sever>
     }
 
 
-
     private void s_Thread()
     {
         s_que = new Queue<socket_data>();
@@ -112,14 +113,19 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
         Packpaket();
 
-        while(true)
+        while (true)
         {
+            // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 웨이팅 이벤트 걸기
+
             if (s_event.WaitOne() == true)  // 이벤트 발생시
             {
                 for (int i = 0; i < s_que.Count; i++)
                 {
                     socket_data temp = new socket_data();
                     temp = s_que.Dequeue();
+
+                    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 센드큐 활성화하는 이벤트 넣기
+
                     //Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
                 }
             }
@@ -133,7 +139,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
     private void r_Thread()
     {
-        while(true)
+        while (true)
         {
             Recv();
 
@@ -141,21 +147,164 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
             // 스레드 탈출 조건 걸기
         }
-       
+
     }
+
+   
 
     public static void Send(Byte[] packet)
     {
+
         if (Sever.Instance.clientSocket == null)
         {
             return;
         }
-    
+
+        Manager_Protocol.Instance.Packing_prot(min.MAIN_LOGJOIN, min.SUB_LOGJOIN_LOGIN, min.DETALI_LOGIN_RESULT);
+
         //byte[] prefSize = new byte[1];
         //prefSize[0] = (byte)packet.Length;    //버퍼의 가장 앞부분에 이 버퍼의 길이에 대한 정보가 있는데 이것을 
         //Sever.Instance.clientSocket.Send(prefSize);    //먼저 보낸다.
         Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
+    }
 
+    class Manager_Protocol : SingleTonMonobehaviour<Manager_Protocol>
+    {
+        bool[] detail_list;
+        int list_size;
+
+        Manager_Protocol() 
+        {
+            detail_list = new bool[16];
+            list_size = 0;
+        }
+
+        ~Manager_Protocol() 
+        {
+            cleanList(); 
+        }
+
+        void cleanList() 
+        {
+            if (detail_list != null)
+                list_size = 0;
+        }
+
+        public int Packing_prot(int p_main, int p_sub, params int[] p_args)
+        {
+            // 프로토콜 패킹
+            int prot = 0;
+            int temp = 0;
+
+            // main
+            temp = temp | p_main << min.PROT_BIT_SIZE * 3;
+            prot = prot | temp;
+            Debug.Log(temp);
+            temp = 0;
+
+            // sub
+            temp = temp | p_sub << min.PROT_BIT_SIZE * 2;
+            prot = prot | temp;
+            Debug.Log(temp);
+            temp = 0;
+
+            // detail
+            foreach (int num in p_args)
+            {
+                temp = temp | num;
+            }
+
+            prot = prot | temp;
+            temp = 0;
+
+            Debug.Log(prot);
+
+            return prot;
+        }
+        void Unpacking_prot(int p_prot)
+        {
+            int temp = 0;
+            int main = 0;
+            int sub = 0;
+            int detail = 0;
+                      
+
+            temp = 0xff00000 & p_prot;
+            main = temp >> min.PROT_BIT_SIZE * 3;
+            temp = 0;
+
+            temp = 0xff000 & p_prot;
+            sub = temp >> min.PROT_BIT_SIZE * 2;
+            temp = 0;
+
+            temp = 0xffff & p_prot;
+            detail = temp;
+
+            Debug.Log("main :" + main);
+            Debug.Log("sub :" + sub);
+            Debug.Log("detail :" + detail);
+
+            cleanList();
+            detail_list = UnpackingDetail(detail);
+        }
+
+        bool[] UnpackingDetail(int args)
+        {
+            bool[] temp = new bool[min.PROT_BIT_SIZE * 2];
+            int complement = 1;
+
+            for (int i = 0; i < min.PROT_BIT_SIZE * 2; i++)
+            {
+                if ((args & complement) != 0)
+                {
+                    temp[i] = true;
+                    list_size++;
+                }
+                else
+                {
+                    temp[i] = false;
+                }
+
+                
+
+                complement *= 2;
+            }
+
+            return temp;
+
+        }
+    }
+
+    int SirealN = 0;
+    void Packing(int p_prot, byte[] p_data) // 프로토콜, 데이터
+    {
+        // 프로토콜
+        byte[] type_bytes = BitConverter.GetBytes(p_prot);
+        // 시리얼 넘버
+        byte[] Snum_bytes = BitConverter.GetBytes(SirealN++); // 시리얼 증가
+        // 데이터
+        byte[] m_data = new byte[p_data.Length];
+        m_data = p_data;
+        // 총괄용
+        byte[] send_bytes = new byte[type_bytes.Length + Snum_bytes.Length + m_data.Length + 4];
+        // 총 사이즈
+        byte[] total_bytes = BitConverter.GetBytes(send_bytes.Length);
+
+        //총 사이즈
+        Array.Copy(total_bytes, 0, send_bytes, 0, total_bytes.Length);
+
+        //프로토콜
+        Array.Copy(type_bytes, 0, send_bytes, total_bytes.Length, type_bytes.Length);
+
+        //시리얼 넘버
+        Array.Copy(Snum_bytes, 0, send_bytes, total_bytes.Length + type_bytes.Length, type_bytes.Length);
+
+        //데이터 복사
+        Array.Copy(m_data, 0, send_bytes, total_bytes.Length + type_bytes.Length + Snum_bytes.Length, m_data.Length);
+
+
+        // 큐에 푸쉬
+        
     }
 
     public static void Recv()
@@ -178,7 +327,9 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
 
 
-        Sever.Instance.r_que.Enqueue(/*언패킹해서 만든 socket_data*/);
+
+
+        //Sever.Instance.r_que.Enqueue(/*언패킹해서 만든 socket_data*/);
         // 언패킹하고 큐에 넣기
     }
 

@@ -34,6 +34,8 @@ unsigned int Manager_Protocol::Packing_prot(unsigned int p_main, unsigned int p_
 
     printf("prot : %d\n", prot);
 
+    Unpacking_prot(prot);
+
     return prot;
 }
 

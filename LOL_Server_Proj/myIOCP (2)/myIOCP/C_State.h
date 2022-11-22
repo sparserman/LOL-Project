@@ -13,9 +13,6 @@ public:
 	virtual void send_sta() = 0;
 };
 
-
-
-
 class STATE_INIT : public C_State
 {
 protected:
@@ -91,5 +88,4 @@ public:
 	void send_sta();
 
 };
-
 #endif

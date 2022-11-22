@@ -1,2 +1,0 @@
-D:\Project\myIOCP (2)\LoginClient\Debug\TCPClient.exe
-D:\Project\myIOCP (2)\LoginClient\Debug\TCPClient.pdb
