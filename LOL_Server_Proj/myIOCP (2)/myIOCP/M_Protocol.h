@@ -30,6 +30,3 @@ public:
     void Unpacking_prot(unsigned int p_prot);
     bool* UnpackingDetail(unsigned int args);
 };
-
-
-

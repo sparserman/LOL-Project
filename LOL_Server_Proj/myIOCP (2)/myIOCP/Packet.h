@@ -62,7 +62,7 @@ public:
 
 	void setSizeflag(bool p_bool) { this->r_sizeflag = p_bool; };
 
-	void Packing(E_PROTOCOL p_prot, char* p_data, int p_size);
+	void Packing(unsigned int p_prot, char* p_data, int p_size);
 	//push
 	void Push(char* p_buf, int p_size);
 	void UnPacking(char* p_buf, char* p_data);
@@ -74,7 +74,7 @@ public:
 	void send_que();
 
 	//샌드에서 패킹 호출
-	bool send_pak(E_PROTOCOL p_prot, char* p_data, int p_size);
+	bool send_pak(unsigned int p_prot, char* p_data, int p_size);
 	bool recv_pak();
 
 	int CompleteRecv_pak(int p_completebyte);

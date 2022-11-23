@@ -6,8 +6,9 @@
 void STATE_INIT::recv_sta()
 {
 	printf("STATE_INIT recv\n");
-	Manager_LOGJOIN::getInstance().PackPacket(client, PROT_LJ_JOIN_INFO, NODATA, JOIN_SUCCESS_MSG);
-	Manager_Protocol::getInstance().Packing_prot()
+	unsigned int pack = Manager_Protocol::getInstance().Packing_prot(MAIN_LOGJOIN, SUB_LOGJOIN_LOGIN, 1, DETALI_LOGIN_RESULT);
+	Manager_LOGJOIN::getInstance().PackPacket(client, pack, JOIN_SUCCESS_MSG);
+	
 }
 
 void STATE_INIT::send_sta()
@@ -15,7 +16,6 @@ void STATE_INIT::send_sta()
 	printf("STATE_INIT send\n");
 	client->setState(client->getsta_login());
 }
-
 
 //STATE_LOGIN ¸®½Ãºê »÷µå
 void STATE_LOGIN::recv_sta()
@@ -57,6 +57,3 @@ void STATE_DISCONNECTED::recv_sta()
 void STATE_DISCONNECTED::send_sta()
 {
 }
-
-
-

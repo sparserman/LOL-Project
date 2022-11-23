@@ -27,7 +27,7 @@ void Packet::send_que()
 	}
 }
 
-bool Packet::send_pak(E_PROTOCOL p_prot, char* p_data, int p_size)
+bool Packet::send_pak(unsigned int p_prot, char* p_data, int p_size)
 {
 	Packing(p_prot, p_data, p_size);
 
@@ -98,7 +98,7 @@ bool Packet::recv_pak()
 	return true;
 }
 
-void Packet::Packing(E_PROTOCOL p_prot, char* p_data, int p_size)
+void Packet::Packing(unsigned int p_prot, char* p_data, int p_size)
 {
 	char* temp = new char[BUFSIZE];
 	char* ptr = temp;
@@ -110,9 +110,9 @@ void Packet::Packing(E_PROTOCOL p_prot, char* p_data, int p_size)
 
 
 	// 프로토콜
-	memcpy(ptr, &p_prot, sizeof(E_PROTOCOL));
-	ptr = ptr + sizeof(E_PROTOCOL);
-	totalsize = totalsize + sizeof(E_PROTOCOL);
+	memcpy(ptr, &p_prot, sizeof(unsigned int));
+	ptr = ptr + sizeof(unsigned int);
+	totalsize = totalsize + sizeof(unsigned int);
 
 
 	// 시리얼 넘버

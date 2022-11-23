@@ -15,4 +15,3 @@ class M_Sector : public Singleton< M_Sector>
 private:
 	list<Sector> m_sector_list[SEC_SIZE][SEC_SIZE];
 };
-

@@ -70,32 +70,28 @@ void Manager_LOGJOIN::classifyProt(Session* p_ptr, E_PROTOCOL p_prot, E_RESULT p
 	case PROT_LJ_LOGIN_INFO:
 		break;
 	case PROT_LJ_JOIN_RESULT:
-		PackPacket(p_ptr, p_prot, p_rst, p_data);
+		//PackPacket(p_ptr, p_prot, p_rst, p_data);
 		break;
 	case PROT_LJ_LOGIN_RESULT:
-		PackPacket(p_ptr, p_prot, p_rst, p_data);
+		//PackPacket(p_ptr, p_prot, p_rst, p_data);
 		break;
 	case PROT_LJ_LOGOUT:
 		break;
 	case PROT_LJ_LOGOUT_RESULT:
-		PackPacket(p_ptr, p_prot, p_rst, p_data);
+		//PackPacket(p_ptr, p_prot, p_rst, p_data);
 		break;
 	default:
 		break;
 	}
 }
 
-void Manager_LOGJOIN::PackPacket(Session* p_ptr, E_PROTOCOL p_prot, E_RESULT p_rst,const char* p_data)
+void Manager_LOGJOIN::PackPacket(Session* p_ptr, unsigned int p_prot, const char* p_data)
 {
 	char* temp = new char[BUFSIZE];
 	char* buf = temp;
 	int datasize = 0;
 	ZeroMemory(temp, sizeof(temp));
 
-	// Result°ª
-	memcpy(buf, &p_rst, sizeof(p_rst));
-	datasize += sizeof(p_rst);
-	buf += sizeof(p_rst);
 
 	// Data size
 	int strsize = strlen(p_data);

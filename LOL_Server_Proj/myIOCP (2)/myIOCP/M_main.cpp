@@ -106,7 +106,7 @@ bool Manager_main::v_send(void* p_ptr, int p_cbTransferred)
 void Manager_main::CompleteRecvProcess(Session* p_ptr)
 {
 	
-	Manager_LOGJOIN::getInstance().PackPacket(p_ptr, PROT_LJ_JOIN_INFO, NODATA, JOIN_SUCCESS_MSG);
+	
 	// 스테이트에 따라 매니저 부르고
 	// 프로토콜은 각 매니저에서 불러서 처리하기
 	

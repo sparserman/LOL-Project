@@ -34,7 +34,7 @@ public:
 	void classifyProt(Session* p_ptr, E_PROTOCOL p_prot, E_RESULT p_rst, char* p_data);
 
 	// LOGIN RESULT
-	void PackPacket(Session* p_ptr, E_PROTOCOL p_prot, E_RESULT p_rst,const char* p_data);
+	void PackPacket(Session* p_ptr, unsigned int p_prot ,const char* p_data);
 	void UnPackPacket(Session* p_ptr);
 };
 
