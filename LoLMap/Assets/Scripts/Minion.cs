@@ -47,22 +47,17 @@ public class Minion : MonoBehaviour
     {
         // 타겟 위치
         Vector3 attackPos = attackTarget.transform.position;
-
-        if (Vector3.Distance(transform.position, attackPos) < 1f)
-        {
-            Debug.Log("도착");
-        }
         // 이동
         agent.speed = speed * 0.01f;
         var dir = new Vector3(agent.steeringTarget.x, transform.position.y, agent.steeringTarget.z) - transform.position;
-
+        ani.SetBool("isAttack", false);
         // 방향전환
         transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(dir), deltaRotation);
 
         // 목적지 도착 시
         if (Vector3.Distance(transform.position, attackPos) <= attackRange)
         {
-            ani.SetInteger("isMove", 0);
+            ani.SetBool("isAttack", true);
             agent.speed = 0;
         }
         agent.SetDestination(attackPos);
