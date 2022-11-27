@@ -66,12 +66,22 @@ public class Sever : SingleTonMonobehaviour<Sever>
         {
             Debug.Log("Connection Failed:" + e.Message);
         }
+
+        int protocol = Manager_Protocol.Instance.Packing_prot(min.MAIN_LOGJOIN, min.SUB_LOGJOIN_LOGIN, min.DETALI_LOGIN_RESULT);
+
+
+
+        byte[] buf2 = new byte[1];
+        
+
+        //Packing(protocol, Encoding.UTF8.GetBytes("가입에 성공했습니다.\n"));
+        Packing(protocol, buf2);
     }
 
     private void Update()
     {
-        SendQueCheck(this);  // %%%%%%%%%%% 이벤트로 할껀데 필요한지 생각해보기
-        RecvQueCheck(this);
+        //SendQueCheck(this);  // %%%%%%%%%%% 이벤트로 할껀데 필요한지 생각해보기
+        //RecvQueCheck(this);
     }
 
     public void SendQueCheck(Sever sever)
@@ -107,8 +117,8 @@ public class Sever : SingleTonMonobehaviour<Sever>
         s_event = new ManualResetEvent(false);
 
         //리시비 쓰레드 생성
-        Thread recvThread = new Thread(r_Thread);
-        recvThread.Start();
+        //Thread recvThread = new Thread(r_Thread);
+        //recvThread.Start();
         Debug.Log("Recv쓰레드 실행");
 
         Packpaket();
@@ -160,7 +170,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
             return;
         }
 
-        Manager_Protocol.Instance.Packing_prot(min.MAIN_LOGJOIN, min.SUB_LOGJOIN_LOGIN, min.DETALI_LOGIN_RESULT);
+        
 
         //byte[] prefSize = new byte[1];
         //prefSize[0] = (byte)packet.Length;    //버퍼의 가장 앞부분에 이 버퍼의 길이에 대한 정보가 있는데 이것을 
@@ -275,11 +285,11 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
     }
 
-    int SirealN = 0;
+    int SirealN = 3;
     void Packing(int p_prot, byte[] p_data) // 프로토콜, 데이터
     {
         // 프로토콜
-        byte[] type_bytes = BitConverter.GetBytes(p_prot);
+        byte[] type_bytes = BitConverter.GetBytes(p_prot); 
         // 시리얼 넘버
         byte[] Snum_bytes = BitConverter.GetBytes(SirealN++); // 시리얼 증가
         // 데이터
@@ -288,7 +298,10 @@ public class Sever : SingleTonMonobehaviour<Sever>
         // 총괄용
         byte[] send_bytes = new byte[type_bytes.Length + Snum_bytes.Length + m_data.Length + 4];
         // 총 사이즈
+       
         byte[] total_bytes = BitConverter.GetBytes(send_bytes.Length);
+
+        Debug.Log(total_bytes.Length);
 
         //총 사이즈
         Array.Copy(total_bytes, 0, send_bytes, 0, total_bytes.Length);
@@ -302,10 +315,12 @@ public class Sever : SingleTonMonobehaviour<Sever>
         //데이터 복사
         Array.Copy(m_data, 0, send_bytes, total_bytes.Length + type_bytes.Length + Snum_bytes.Length, m_data.Length);
 
-
+        Send(send_bytes);
         // 큐에 푸쉬
         
     }
+
+  
 
     public static void Recv()
     {
@@ -321,7 +336,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         Sever.Instance.clientSocket.Receive(m_packet, sizeof(int), retval, SocketFlags.None);
 
         m_size = BitConverter.ToInt32(m_packet, 0);
-        Debug.Log(m_size);
+        //Debug.Log(m_size);
 
         Sever.Instance.clientSocket.Receive(m_packet, m_size, retval, SocketFlags.None);
 

@@ -2,6 +2,7 @@
 #include "Packet.h"
 #include "C_State.h"
 #include "Global.h"
+#include "M_Protocol.h"
 #ifndef _SESSION_H_
 #define _SESSION_H_
 

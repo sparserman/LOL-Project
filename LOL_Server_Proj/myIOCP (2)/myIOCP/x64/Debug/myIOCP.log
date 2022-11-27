@@ -1,3 +1,1 @@
-﻿  M_Protocol.cpp
-D:\Project\myIOCP (2)\myIOCP\M_Protocol.cpp(25,23): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-  myIOCP.vcxproj -> D:\Project\myIOCP (2)\x64\Debug\myIOCP.exe
+﻿  myIOCP.vcxproj -> C:\Github\LOL-Project\LOL_Server_Proj\myIOCP (2)\x64\Debug\myIOCP.exe

@@ -11,13 +11,13 @@ unsigned int Manager_Protocol::Packing_prot(unsigned int p_main, unsigned int p_
     // main
     temp = temp | p_main << PROT_BIT_SIZE * 3;
     prot = prot | temp;
-    printf("temp : %d\n", temp);
+    //printf("temp : %d\n", temp);
     temp = 0;
 
     // sub
     temp = temp | p_sub << PROT_BIT_SIZE * 2;
     prot = prot | temp;
-    printf("temp : %d\n", temp);
+    //printf("temp : %d\n", temp);
     temp = 0;
 
     // detail
@@ -32,9 +32,9 @@ unsigned int Manager_Protocol::Packing_prot(unsigned int p_main, unsigned int p_
     prot = prot | temp;
     temp = 0;
 
-    printf("prot : %d\n", prot);
+    //printf("prot : %d\n", prot);
 
-    Unpacking_prot(prot);
+    
 
     return prot;
 }
@@ -70,6 +70,7 @@ bool* Manager_Protocol::UnpackingDetail(unsigned int args)
 
     for (int i = 0; i < PROT_BIT_SIZE * 2; i++)
     {
+
         if (args & complement)
         {
             temp[i] = true;
@@ -80,7 +81,7 @@ bool* Manager_Protocol::UnpackingDetail(unsigned int args)
             temp[i] = false;
         }
 
-        printf("%d. %d\n", complement, temp[i]);
+        //printf("%d. %d\n", complement, temp[i]);
 
         complement *= 2;
     }
