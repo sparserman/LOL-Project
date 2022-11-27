@@ -299,9 +299,9 @@ public class Sever : SingleTonMonobehaviour<Sever>
         byte[] send_bytes = new byte[type_bytes.Length + Snum_bytes.Length + m_data.Length + 4];
         // √— ªÁ¿Ã¡Ó
        
-        byte[] total_bytes = BitConverter.GetBytes(send_bytes.Length);
+        byte[] total_bytes = BitConverter.GetBytes(send_bytes.Length - 4);
 
-        Debug.Log(total_bytes.Length);
+        Debug.Log(BitConverter.ToInt32(total_bytes));
 
         //√— ªÁ¿Ã¡Ó
         Array.Copy(total_bytes, 0, send_bytes, 0, total_bytes.Length);
