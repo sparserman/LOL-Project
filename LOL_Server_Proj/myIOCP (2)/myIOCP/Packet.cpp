@@ -98,6 +98,11 @@ bool Packet::recv_pak()
 	return true;
 }
 
+
+
+
+
+
 void Packet::Packing(unsigned int p_prot, char* p_data, int p_size)
 {
 	char* temp = new char[BUFSIZE];
@@ -161,7 +166,7 @@ void Packet::UnPacking(char* p_buf, char* p_data)
 	memcpy(&number, ptr, sizeof(int));
 	ptr = ptr + sizeof(int);		//시리얼 넘버 +
 
-	printf("%d", number);
+	printf("%d\n", number);
 
 	memcpy(&strsize1, ptr, sizeof(strsize1));
 	ptr = ptr + sizeof(strsize1);

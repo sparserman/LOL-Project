@@ -60,7 +60,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
             Debug.Log("Connecting to Server");
             this.clientSocket.Connect(serverEndPoint);
             // 서버 연결 성공시 
-            ThreadCreate();     //쓰레드 생성
+            //ThreadCreate();     //쓰레드 생성 이시발롬이 버그의 원인이었음 죽일뻔함;;;
         }
         catch (SocketException e)
         {
@@ -70,12 +70,21 @@ public class Sever : SingleTonMonobehaviour<Sever>
         int protocol = Manager_Protocol.Instance.Packing_prot(min.MAIN_LOGJOIN, min.SUB_LOGJOIN_LOGIN, min.DETALI_LOGIN_RESULT);
 
 
+        int euckrCodepage = 51949;
+        Encoding EnKr = Encoding.GetEncoding(euckrCodepage);
 
-        byte[] buf2 = new byte[1];
+        
         
 
-        //Packing(protocol, Encoding.UTF8.GetBytes("가입에 성공했습니다.\n"));
-        Packing(protocol, buf2);
+
+        byte[] msg = EnKr.GetBytes("안녕하세용\n");
+        byte[] to_bytes = BitConverter.GetBytes(msg.Length);
+        byte[] buf = new byte[sizeof(int) + msg.Length];
+
+
+        Array.Copy(to_bytes, 0, buf, 0, sizeof(int));
+        Array.Copy(msg, 0, buf, sizeof(int), msg.Length);
+        Packing(protocol, buf);
     }
 
     private void Update()
@@ -121,7 +130,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         //recvThread.Start();
         Debug.Log("Recv쓰레드 실행");
 
-        Packpaket();
+        
 
         while (true)
         {
@@ -170,12 +179,10 @@ public class Sever : SingleTonMonobehaviour<Sever>
             return;
         }
 
-        
 
-        //byte[] prefSize = new byte[1];
-        //prefSize[0] = (byte)packet.Length;    //버퍼의 가장 앞부분에 이 버퍼의 길이에 대한 정보가 있는데 이것을 
-        //Sever.Instance.clientSocket.Send(prefSize);    //먼저 보낸다.
-        Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
+
+        
+        Debug.Log(Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None));
     }
 
     class Manager_Protocol : SingleTonMonobehaviour<Manager_Protocol>
@@ -286,6 +293,12 @@ public class Sever : SingleTonMonobehaviour<Sever>
     }
 
     int SirealN = 3;
+
+
+    static public string byteArrayout(byte[] bytes)
+    {
+        return string.Join(", ", bytes);
+    }
     void Packing(int p_prot, byte[] p_data) // 프로토콜, 데이터
     {
         // 프로토콜
@@ -295,16 +308,22 @@ public class Sever : SingleTonMonobehaviour<Sever>
         // 데이터
         byte[] m_data = new byte[p_data.Length];
         m_data = p_data;
+
+        int total_size = sizeof(int) + sizeof(int) + m_data.Length;
         // 총괄용
-        byte[] send_bytes = new byte[type_bytes.Length + Snum_bytes.Length + m_data.Length + 4];
+        byte[] send_bytes = new byte[total_size + sizeof(int)];
         // 총 사이즈
-       
-        byte[] total_bytes = BitConverter.GetBytes(send_bytes.Length - 4);
+
+        
+
+
+        Byte[] total_bytes = BitConverter.GetBytes(total_size);
 
         Debug.Log(BitConverter.ToInt32(total_bytes));
+        Debug.Log(total_bytes.Length);
 
         //총 사이즈
-        Array.Copy(total_bytes, 0, send_bytes, 0, total_bytes.Length);
+        Array.Copy(total_bytes, 0, send_bytes, 0, sizeof(int));
 
         //프로토콜
         Array.Copy(type_bytes, 0, send_bytes, total_bytes.Length, type_bytes.Length);
@@ -315,9 +334,17 @@ public class Sever : SingleTonMonobehaviour<Sever>
         //데이터 복사
         Array.Copy(m_data, 0, send_bytes, total_bytes.Length + type_bytes.Length + Snum_bytes.Length, m_data.Length);
 
+
+        Debug.Log(send_bytes.Length);
+        Debug.Log(byteArrayout(send_bytes));
+        
+
+
+
+
+
         Send(send_bytes);
         // 큐에 푸쉬
-        
     }
 
   
@@ -367,24 +394,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         public char[] data;
     }
 
-    private void Packpaket()
-    {
-        socket_data s_data = new socket_data();
-        s_data.data = new char[100];
-        string strData = "testString";
-        s_data.msg = 1;
-        s_data.size = (short)Marshal.SizeOf(typeof(socket_data));
-        s_data.type = 5;
-
-        int len = strData.Length;
-        for(int i =0;i<len;i++)
-        {
-            s_data.data[i] = strData[i];
-        }
-        byte[] packet = new byte[1];
-        StruckToBytes(s_data, ref packet);
-        Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
-    }
+   
 
     private void StruckToBytes(object obj, ref byte[] packet)
     {

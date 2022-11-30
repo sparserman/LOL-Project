@@ -83,7 +83,7 @@ DWORD __stdcall IOCP::WorkerThread(LPVOID arg)
 			closesocket(client_sock);
 			printf_s("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
 				inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
-			delete ptr;
+			//delete ptr;
 			continue;
 		}
 

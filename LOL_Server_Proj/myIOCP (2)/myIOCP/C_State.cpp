@@ -9,13 +9,13 @@ void STATE_INIT::recv_sta()
 	
 	Manager_Protocol::getInstance().Unpacking_prot(client->getProt());
 
-	/*
+	
 	char msg[BUFSIZE];
 	memset(msg, 0, sizeof(msg));
 	client->UnPacking(client->getBuf(), msg);
 
 	printf("%s\n", msg);
-	*/
+	
 	
 }
 
