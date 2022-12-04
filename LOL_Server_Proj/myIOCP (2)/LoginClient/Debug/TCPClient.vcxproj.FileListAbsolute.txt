@@ -1,0 +1,2 @@
+C:\Github\LOL-Project\LOL_Server_Proj\myIOCP (2)\LoginClient\Debug\TCPClient.exe
+C:\Github\LOL-Project\LOL_Server_Proj\myIOCP (2)\LoginClient\Debug\TCPClient.pdb

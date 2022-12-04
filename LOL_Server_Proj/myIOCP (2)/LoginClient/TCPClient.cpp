@@ -243,6 +243,7 @@ void PackPacket(char* _buf, E_PROTOCOL _protocol, int num, int& _size)
 	_size = _size + sizeof(num);
 
 	ptr = _buf;
+
 	memcpy(ptr, &_size, sizeof(_size));
 
 	_size = _size + sizeof(_size);
@@ -293,7 +294,7 @@ int main(int argc, char* argv[])
 	int size;
 	bool endflg = false;
 	
-	PackPacket(buf, PROT_LJ_JOIN_INFO, size);
+	PackPacket(buf, PROT_LJ_JOIN_INFO, 3 , size);
 	retval = send(sock, buf, size, 0);
 	if (retval == SOCKET_ERROR)
 	{

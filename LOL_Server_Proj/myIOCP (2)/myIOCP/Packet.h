@@ -69,7 +69,7 @@ public:
 
 	// 프로토콜이랑 버퍼위치를 제공하는 함수 만들기
 	char* getBuf() { return recvbuf; };
-	E_PROTOCOL getProt();
+	unsigned int getProt();
 
 	void send_que();
 

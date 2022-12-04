@@ -9,11 +9,11 @@ Packet::Packet(SOCKET p_socket)
 
 
 
-E_PROTOCOL Packet::getProt()
+unsigned int Packet::getProt()
 {
-	E_PROTOCOL temp;
+	unsigned int temp;
 
-	memcpy(&temp, recvbuf + sizeof(int), sizeof(E_PROTOCOL));
+	memcpy(&temp, recvbuf, sizeof(unsigned int));
 
 	return temp;
 }
@@ -98,6 +98,11 @@ bool Packet::recv_pak()
 	return true;
 }
 
+
+
+
+
+
 void Packet::Packing(unsigned int p_prot, char* p_data, int p_size)
 {
 	char* temp = new char[BUFSIZE];
@@ -151,8 +156,23 @@ void Packet::Push(char* p_buf, int p_size)
 
 void Packet::UnPacking(char* p_buf, char* p_data)
 {
-	// size, prot, sirealN, data
+	int strsize1;
+	int number;
 
+	//프로토콜, 시리얼 넘버, 데이터
+	char* ptr = p_buf + sizeof(unsigned int);  //프로토콜 사이즈 +
+
+	
+	memcpy(&number, ptr, sizeof(int));
+	ptr = ptr + sizeof(int);		//시리얼 넘버 +
+
+	printf("%d\n", number);
+
+	memcpy(&strsize1, ptr, sizeof(strsize1));
+	ptr = ptr + sizeof(strsize1);
+
+	memcpy(p_data, ptr, strsize1);
+	ptr = ptr + strsize1;
 
 }
 

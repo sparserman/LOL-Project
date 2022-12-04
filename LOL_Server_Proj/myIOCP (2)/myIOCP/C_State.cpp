@@ -1,19 +1,31 @@
 #include "C_State.h"
 #include "Session.h"
-#include "M_Protocol.h"
+
 
 //STATE_INIT ¸®½Ãºê »÷µå
 void STATE_INIT::recv_sta()
 {
 	printf("STATE_INIT recv\n");
-	unsigned int pack = Manager_Protocol::getInstance().Packing_prot(MAIN_LOGJOIN, SUB_LOGJOIN_LOGIN, 1, DETALI_LOGIN_RESULT);
-	Manager_LOGJOIN::getInstance().PackPacket(client, pack, JOIN_SUCCESS_MSG);
+	
+	Manager_Protocol::getInstance().Unpacking_prot(client->getProt());
+
+	
+	char msg[BUFSIZE];
+	memset(msg, 0, sizeof(msg));
+	client->UnPacking(client->getBuf(), msg);
+
+	printf("%s\n", msg);
+	
 	
 }
 
 void STATE_INIT::send_sta()
 {
 	printf("STATE_INIT send\n");
+
+	unsigned int pack = Manager_Protocol::getInstance().Packing_prot(MAIN_LOGJOIN, SUB_LOGJOIN_LOGIN, 1, DETALI_LOGIN_RESULT);
+	Manager_LOGJOIN::getInstance().PackPacket(client, pack, JOIN_SUCCESS_MSG);
+
 	client->setState(client->getsta_login());
 }
 
