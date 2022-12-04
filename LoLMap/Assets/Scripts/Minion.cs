@@ -26,6 +26,9 @@ public class Minion : MonoBehaviour
 
     private Animator ani;
 
+    private bool attackDelay = true;
+
+    // 블루 : 1, 레드 : 2
     public int type;
 
     void Start()
@@ -34,17 +37,19 @@ public class Minion : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         ani = GetComponent<Animator>();
         gm.allList.Add(gameObject);
-        attackTarget = nexus;
     }
 
     void Update()
     {
-        TargetClear();
         MinionControl();
     }
 
     private void MinionControl()
     {
+        if(!attackDelay)
+        {
+            return;
+        }
         // 타겟 위치
         Vector3 attackPos = attackTarget.transform.position;
         // 이동
@@ -59,8 +64,11 @@ public class Minion : MonoBehaviour
         {
             ani.SetBool("isAttack", true);
             agent.speed = 0;
+            attackDelay = false;
         }
         agent.SetDestination(attackPos);
+
+        TargetChange();
     }
 
     private void TargetChange()
@@ -72,43 +80,22 @@ public class Minion : MonoBehaviour
                 if(Vector3.Distance(attackTarget.transform.position, transform.position)
                     > Vector3.Distance(gm.allList[i].transform.position, transform.position))
                 {
-                    if(type == 1)
+                    // 블루 팀이면
+                    if(type == 0)
                     {
-                        
+                        if (gm.allList[i].transform.name != transform.name && gm.allList[i].tag == "Red")
+                        {
+                            attackTarget = gm.allList[i];
+                        }
                     }
+                    // 레드 팀 이면
                     else
                     {
                         if (gm.allList[i].transform.name != transform.name && gm.allList[i].tag == "Blue")
                         {
                             attackTarget = gm.allList[i];
-                            patience = 100;
                         }
-                        
                     }
-                }
-            }
-        }
-    }
-
-    private float currentTime = 0;
-    private void TargetClear()
-    {
-        if (patience <= 0)
-        {
-            if (attackTarget != null)
-            {
-                TargetChange();
-            }
-        }
-        if (attackTarget != null && attackTarget != nexus)
-        {
-            if (Vector3.Distance(transform.position, attackTarget.transform.position) >= 3)
-            {
-                currentTime += Time.deltaTime;
-                if(currentTime >= 1f)
-                {
-                    currentTime = 0;
-                    patience -= 20;
                 }
             }
         }
@@ -117,5 +104,6 @@ public class Minion : MonoBehaviour
     public void MinionAttackEvent()
     {
         Debug.Log("미니언 공격");
+        attackDelay = true;
     }
 }
