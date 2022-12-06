@@ -3,6 +3,7 @@
 #include "C_State.h"
 #include "Global.h"
 #include "M_Protocol.h"
+#include "M_Room.h"
 #ifndef _SESSION_H_
 #define _SESSION_H_
 
@@ -22,6 +23,8 @@ protected:
 
 	str_log logjoin;
 
+
+	
 public:
 	Session();
 	Session(SOCKET p_socket);
@@ -46,6 +49,10 @@ public:
 	int CompleteSend_ses(void* p_ptr, int p_completebyte);
 
 	void initSession();
+
+
+	Room* my_room;
+	int m_r_count;
 };
 
 #endif

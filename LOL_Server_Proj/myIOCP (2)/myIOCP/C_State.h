@@ -4,7 +4,7 @@ class Session;
 #define __C_STATE_H_
 #include "Global.h"
 #include "M_LogJoin.h"
-
+//#include "M_Room.h"
 
 class C_State
 {
@@ -31,14 +31,8 @@ protected:
 	Session* client;
 public:
 	STATE_GAME(Session* p_client) : client(p_client) {}
-	void recv_sta()
-	{
-		printf("STATE_GAME recv\n");
-	}
-	void send_sta()
-	{
-		printf("STATE_GAME send\n");
-	}
+	void recv_sta();
+	void send_sta();
 };
 
 class STATE_LOGIN : public C_State

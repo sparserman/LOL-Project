@@ -9,18 +9,45 @@ using System.Threading;
 
 
 using System.Runtime.InteropServices;
-static class min
+static class Pro
 {
     public const int bufsize = 1024;
     public const int PROT_BIT_SIZE = 8;
 
     // main 1~16
-    public const int MAIN_LOGJOIN = 2;
+    public const int MAIN_LOGJOIN = 1;
+    public const int GAME_SELECT = 2;
+    public const int GAME_MAIN = 3;
 
-    // sub 1~16
+    public const int GAME_Poppy = 4;
+    public const int GAME_Rengar = 5;
+    public const int GAME_Ezreal = 6;
+    public const int GAME_Orianna = 7;
+
+
+    //  GAME_Champion sub 1~16
+    public const int MOVE = 1;
+    public const int ATTACK = 2;
+    public const int SKILL_Q = 3;
+    public const int SKILL_W = 4;
+    public const int SKILL_E = 5;
+    public const int SKILL_R = 6;
+    public const int SKILL_PV = 7;
+
+    // MAIN_LOGJOIN sub 1~16
     public const int SUB_LOGJOIN_LOGIN = 1;
 
-    // detail 2의 16승까지 배수만
+
+
+    // GAME_SELECT sub 1~16
+    public const int SUB_Poppy = 1;
+    public const int SUB_Rengar = 2;
+    public const int SUB_Ezreal = 3;
+    public const int SUB_Orianna = 4;
+
+    // GAME_MAIN sub 1~16
+
+    //MAIN_LOGJOIN detail 2의 16승까지 배수만
     public const int DETALI_LOGIN_RESULT = 1;
     public const int DETALI_JOIN_RESULT = 2;
     public const int DETALI_LOGIN_SUCCESS = 4;
@@ -34,9 +61,10 @@ public class Sever : SingleTonMonobehaviour<Sever>
     public string serverIp = "127.0.0.1";
     Socket clientSocket = null;
 
-    Queue<socket_data> s_que;
-    Queue<socket_data> r_que;
+    Queue<byte[]> s_que = new Queue<byte[]>();
+    Queue<byte[]> r_que = new Queue<byte[]>();
 
+    
 
 
     ManualResetEvent s_event;
@@ -44,6 +72,8 @@ public class Sever : SingleTonMonobehaviour<Sever>
     // Start is called before the first frame update
     void Start()
     {
+        
+
 
         //클라이언트에서 사용할 소켓 준비
         this.clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -60,21 +90,21 @@ public class Sever : SingleTonMonobehaviour<Sever>
             Debug.Log("Connecting to Server");
             this.clientSocket.Connect(serverEndPoint);
             // 서버 연결 성공시 
-            //ThreadCreate();     //쓰레드 생성 이시발롬이 버그의 원인이었음 죽일뻔함;;;
+            ThreadCreate();     //쓰레드 생성 이시발롬이 버그의 원인이었음 죽일뻔함;;;
         }
         catch (SocketException e)
         {
             Debug.Log("Connection Failed:" + e.Message);
         }
 
-        int protocol = Manager_Protocol.Instance.Packing_prot(min.MAIN_LOGJOIN, min.SUB_LOGJOIN_LOGIN, min.DETALI_LOGIN_RESULT);
+        int protocol = Manager_Protocol.Instance.Packing_prot(Pro.MAIN_LOGJOIN, Pro.SUB_LOGJOIN_LOGIN);
+
 
 
         int euckrCodepage = 51949;
         Encoding EnKr = Encoding.GetEncoding(euckrCodepage);
 
-        
-        
+
 
 
         byte[] msg = EnKr.GetBytes("안녕하세용\n");
@@ -86,20 +116,20 @@ public class Sever : SingleTonMonobehaviour<Sever>
         Array.Copy(msg, 0, buf, sizeof(int), msg.Length);
         Packing(protocol, buf);
 
-        Recv();
+        //Recv();
     }
 
     private void Update()
     {
         //SendQueCheck(this);  // %%%%%%%%%%% 이벤트로 할껀데 필요한지 생각해보기
-        //RecvQueCheck(this);
+        RecvQueCheck(this);
     }
 
     public void SendQueCheck(Sever sever)
     {
         if (sever.s_que.Count > 0)
         {
-            socket_data data = s_que.Dequeue();
+            byte[] buf = s_que.Dequeue();
             //Send(data);
         }
     }
@@ -108,23 +138,31 @@ public class Sever : SingleTonMonobehaviour<Sever>
     {
         if (sever.r_que.Count > 0)
         {
-            socket_data data = r_que.Dequeue();
+            byte[] buf = r_que.Dequeue();
+            Debug.Log("RecvQueCheck 실행");
             //리시브된걸 언패킹후 처리
+
+            UnPacking(buf);
         }
     }
 
     private void ThreadCreate()
     {
+        //리시브 쓰레드 생성
+        Thread recvThread = new Thread(r_Thread);
+        recvThread.Start();
+        Debug.Log("Recv쓰레드 실행");
+
         //샌드 쓰레드 생성
-        Thread sendThread = new Thread(s_Thread);
-        sendThread.Start();
-        Debug.Log("Send쓰레드 실행");
+        //Thread sendThread = new Thread(s_Thread);
+        //sendThread.Start();
+        //Debug.Log("Send쓰레드 실행");
     }
 
 
     private void s_Thread()
     {
-        s_que = new Queue<socket_data>();
+        s_que = new Queue<byte[]>();
         s_event = new ManualResetEvent(false);
 
         //리시비 쓰레드 생성
@@ -142,8 +180,8 @@ public class Sever : SingleTonMonobehaviour<Sever>
             {
                 for (int i = 0; i < s_que.Count; i++)
                 {
-                    socket_data temp = new socket_data();
-                    temp = s_que.Dequeue();
+                    
+                    byte[] temp = s_que.Dequeue();
 
                     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 센드큐 활성화하는 이벤트 넣기
 
@@ -182,7 +220,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
 
         
-        Debug.Log(Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None));
+        Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
     }
 
     class Manager_Protocol : SingleTonMonobehaviour<Manager_Protocol>
@@ -214,15 +252,13 @@ public class Sever : SingleTonMonobehaviour<Sever>
             int temp = 0;
 
             // main
-            temp = temp | p_main << min.PROT_BIT_SIZE * 3;
+            temp = temp | p_main << Pro.PROT_BIT_SIZE * 3;
             prot = prot | temp;
-            Debug.Log(temp);
             temp = 0;
 
             // sub
-            temp = temp | p_sub << min.PROT_BIT_SIZE * 2;
+            temp = temp | p_sub << Pro.PROT_BIT_SIZE * 2;
             prot = prot | temp;
-            Debug.Log(temp);
             temp = 0;
 
             // detail
@@ -234,7 +270,6 @@ public class Sever : SingleTonMonobehaviour<Sever>
             prot = prot | temp;
             temp = 0;
 
-            Debug.Log(prot);
 
             return prot;
         }
@@ -247,11 +282,11 @@ public class Sever : SingleTonMonobehaviour<Sever>
                       
 
             temp = 0xff00000 & p_prot;
-            main = temp >> min.PROT_BIT_SIZE * 3;
+            main = temp >> Pro.PROT_BIT_SIZE * 3;
             temp = 0;
 
             temp = 0xff000 & p_prot;
-            sub = temp >> min.PROT_BIT_SIZE * 2;
+            sub = temp >> Pro.PROT_BIT_SIZE * 2;
             temp = 0;
 
             temp = 0xffff & p_prot;
@@ -267,10 +302,10 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
         bool[] UnpackingDetail(int args)
         {
-            bool[] temp = new bool[min.PROT_BIT_SIZE * 2];
+            bool[] temp = new bool[Pro.PROT_BIT_SIZE * 2];
             int complement = 1;
 
-            for (int i = 0; i < min.PROT_BIT_SIZE * 2; i++)
+            for (int i = 0; i < Pro.PROT_BIT_SIZE * 2; i++)
             {
                 if ((args & complement) != 0)
                 {
@@ -319,8 +354,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
         Byte[] total_bytes = BitConverter.GetBytes(total_size);
 
-        Debug.Log(BitConverter.ToInt32(total_bytes));
-        Debug.Log(total_bytes.Length);
+        
 
         //총 사이즈
         Array.Copy(total_bytes, 0, send_bytes, 0, sizeof(int));
@@ -335,8 +369,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         Array.Copy(m_data, 0, send_bytes, total_bytes.Length + type_bytes.Length + Snum_bytes.Length, m_data.Length);
 
 
-        Debug.Log(send_bytes.Length);
-        Debug.Log(byteArrayout(send_bytes));
+        
         
 
 
@@ -390,8 +423,11 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
         //int length = 0;
 
-        Sever.Instance.UnPacking(m_packet);
-        //Sever.Instance.r_que.Enqueue(/*언패킹해서 만든 socket_data*/);
+        
+        //Sever.Instance.UnPacking(m_packet);
+
+
+        Sever.Instance.r_que.Enqueue(m_packet);
         // 언패킹하고 큐에 넣기
     }
 
@@ -407,56 +443,6 @@ public class Sever : SingleTonMonobehaviour<Sever>
         }
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public class socket_data
-    {
-        public int msg;
-        public short size;
-        public short type;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
-        public char[] data;
-    }
-
-   
-
-    private void StruckToBytes(object obj, ref byte[] packet)
-    {
-        int size = Marshal.SizeOf(obj) + sizeof(int);
-        //packet = new byte[size];
-        IntPtr ptr = Marshal.AllocHGlobal(size + 1);
-
-        int k = sizeof(int);  // 인트 크기
-        byte[] kk = new byte[k];  // 바이트 크기
-        byte[] kkk = new byte[size];  // 배열 크기
-
-        kk = BitConverter.GetBytes(k);  // kk에 인트 넣기
-
-        packet = new byte[kkk.Length + size];
-
-        Marshal.StructureToPtr(obj, ptr, false);
-        Marshal.Copy(ptr, kkk, 0, size);
-
-        Array.Copy(kk, 0, packet, 0, kk.Length);
-        Array.Copy(kkk, 0, packet, 0, kkk.Length);
-
-        //Marshal.Copy(ptr, packet, 0, size);
-        Marshal.FreeHGlobal(ptr);
-    }
-
-    public T ByteArrayToStruct<T>(byte[] buffer) where T : struct
-    {
-        int size = Marshal.SizeOf(typeof(T));
-        if (size > buffer.Length)
-        {
-            throw new Exception();
-        }
-
-        IntPtr ptr = Marshal.AllocHGlobal(size);
-        Marshal.Copy(buffer, 0, ptr, size);
-        T obj = (T)Marshal.PtrToStructure(ptr, typeof(T));
-        Marshal.FreeHGlobal(ptr);
-        return obj;
-    }
-
+    
     // Update is called once per frame
 }

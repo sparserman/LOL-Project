@@ -75,6 +75,13 @@ public:
 	E_IO_TYPE type;
 };
 
+struct Protocol
+{
+	int main;
+	int sub;
+	int detail;
+};
+
 struct str_log
 {
 	char id[BUFSIZ];

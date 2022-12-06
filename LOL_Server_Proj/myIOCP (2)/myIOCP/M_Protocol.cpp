@@ -39,12 +39,14 @@ unsigned int Manager_Protocol::Packing_prot(unsigned int p_main, unsigned int p_
     return prot;
 }
 
-void Manager_Protocol::Unpacking_prot(unsigned int p_prot)
+Protocol Manager_Protocol::Unpacking_prot(unsigned int p_prot)
 {
     unsigned int temp = 0;
     unsigned int main = 0;
     unsigned int sub = 0;
     unsigned int detail = 0;
+
+    Protocol protocol;
 
     temp = 0xff00000 & p_prot;
     main = temp >> PROT_BIT_SIZE * 3;
@@ -58,9 +60,18 @@ void Manager_Protocol::Unpacking_prot(unsigned int p_prot)
     detail = temp;
 
     printf("main : %d\nsub : %d\ndetail : %d\n", main, sub, detail);
-
+    
+    
     cleanList();
     detail_list = UnpackingDetail(detail);
+    protocol.main = main;
+    protocol.sub = sub;
+    protocol.detail = detail;
+
+    
+    
+
+    return protocol;
 }
 
 bool* Manager_Protocol::UnpackingDetail(unsigned int args)
@@ -80,6 +91,9 @@ bool* Manager_Protocol::UnpackingDetail(unsigned int args)
         {
             temp[i] = false;
         }
+
+
+
 
         //printf("%d. %d\n", complement, temp[i]);
 

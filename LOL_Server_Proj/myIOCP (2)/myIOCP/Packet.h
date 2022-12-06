@@ -44,6 +44,8 @@ protected:
 		};
 	};
 
+
+	
 	myQueue<str_pack*> queue;
 
 	int serialR;
