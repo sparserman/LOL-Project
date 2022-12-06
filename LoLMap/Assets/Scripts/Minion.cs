@@ -81,7 +81,7 @@ public class Minion : MonoBehaviour
                     > Vector3.Distance(gm.allList[i].transform.position, transform.position))
                 {
                     // ºí·ç ÆÀÀÌ¸é
-                    if(type == 0)
+                    if(type == 1)
                     {
                         if (gm.allList[i].transform.name != transform.name && gm.allList[i].tag == "Red")
                         {
@@ -89,7 +89,7 @@ public class Minion : MonoBehaviour
                         }
                     }
                     // ·¹µå ÆÀ ÀÌ¸é
-                    else
+                    else if (type == 2)
                     {
                         if (gm.allList[i].transform.name != transform.name && gm.allList[i].tag == "Blue")
                         {
@@ -98,6 +98,11 @@ public class Minion : MonoBehaviour
                     }
                 }
             }
+        }
+
+        if(Vector3.Distance(attackTarget.transform.position, transform.position) > 5f)
+        {
+            attackTarget = nexus;
         }
     }
 

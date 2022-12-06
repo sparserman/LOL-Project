@@ -627,13 +627,13 @@ public class ChampMove : MonoBehaviour
 
             RaycastHit hit;
             // 충돌 체크
-            if (Physics.Raycast(transform.position, transform.forward, out hit, 1f))
+            if (Physics.Raycast(transform.position, transform.forward, out hit, 0.1f))
             {
-                if(!hit.collider.CompareTag("Blue"))
+                if (!hit.collider.CompareTag("Blue"))
                 {
                     flag = true;
                 }
-                
+
             }
 
             // 충돌했다면
@@ -702,7 +702,7 @@ public class ChampMove : MonoBehaviour
 
             // 회전이펙트 따라 다니기
             temppos = transform.position;
-            temppos.y = 3;
+            temppos.y = transform.position.y + 3;
             cpyObj.transform.position = temppos;
 
             t += Time.deltaTime;

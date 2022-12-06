@@ -17,8 +17,9 @@ public class Shot2 : MonoBehaviour
 
     public void SetShotInfo(Vector3 p_dir, float p_speed, float p_range)
     {
+        Debug.Log("e");
         firstPos = transform.position;
-        p_dir.y = 0.5f;
+        p_dir.y = 6f;
         dir = p_dir - transform.position;
         speed = p_speed;
         range = p_range;

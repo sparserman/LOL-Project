@@ -644,6 +644,9 @@ public class ChampMove2 : MonoBehaviour
     {
         Vector3 p_mypos = transform.position;
         Vector3 p_targetpos = attackTarget.transform.position;
+
+        p_targetpos -= (p_targetpos - p_mypos).normalized;
+
         float i = Vector3.Distance(p_mypos, p_targetpos);
         float divval = 1 / (i * 0.06f);
         float t = 0;
