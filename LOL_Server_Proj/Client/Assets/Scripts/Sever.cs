@@ -85,6 +85,8 @@ public class Sever : SingleTonMonobehaviour<Sever>
         Array.Copy(to_bytes, 0, buf, 0, sizeof(int));
         Array.Copy(msg, 0, buf, sizeof(int), msg.Length);
         Packing(protocol, buf);
+
+        Recv();
     }
 
     private void Update()
@@ -179,8 +181,6 @@ public class Sever : SingleTonMonobehaviour<Sever>
             return;
         }
 
-
-
         
         Debug.Log(Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None));
     }
@@ -238,7 +238,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
             return prot;
         }
-        void Unpacking_prot(int p_prot)
+        public void Unpacking_prot(int p_prot)
         {
             int temp = 0;
             int main = 0;
@@ -347,7 +347,26 @@ public class Sever : SingleTonMonobehaviour<Sever>
         // 큐에 푸쉬
     }
 
-  
+    void UnPacking(byte[] p_buf)
+    {
+        byte[] pt = new byte[sizeof(int)];
+        Array.Copy(p_buf, pt, sizeof(int));
+        int protocol = BitConverter.ToInt32(pt);
+        Manager_Protocol.Instance.Unpacking_prot(protocol);
+
+
+
+        Array.Copy(p_buf, sizeof(int) , pt, 0 ,sizeof(int));        //pt에 시리얼넘버 복사
+        int S_num = BitConverter.ToInt32(pt);
+        Debug.Log("시리얼 넘버 : " + S_num);
+
+
+        Array.Copy(p_buf, sizeof(int) + sizeof(int), pt, 0, sizeof(int));        //pt에 데이터 사이즈 복사
+        int data_size = BitConverter.ToInt32(pt);
+
+
+
+    }
 
     public static void Recv()
     {
@@ -360,20 +379,24 @@ public class Sever : SingleTonMonobehaviour<Sever>
             return;
         }
 
-        Sever.Instance.clientSocket.Receive(m_packet, sizeof(int), retval, SocketFlags.None);
+        Sever.Instance.clientSocket.Receive(m_packet, retval, sizeof(int), SocketFlags.None);
 
         m_size = BitConverter.ToInt32(m_packet, 0);
-        //Debug.Log(m_size);
+        
 
-        Sever.Instance.clientSocket.Receive(m_packet, m_size, retval, SocketFlags.None);
-
-
+        Sever.Instance.clientSocket.Receive(m_packet, retval, m_size, SocketFlags.None);
 
 
 
+        //int length = 0;
+
+        Sever.Instance.UnPacking(m_packet);
         //Sever.Instance.r_que.Enqueue(/*언패킹해서 만든 socket_data*/);
         // 언패킹하고 큐에 넣기
     }
+
+
+
 
     private void OnApplicationQuit()
     {

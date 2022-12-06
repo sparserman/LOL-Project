@@ -257,7 +257,7 @@ void Packet::initPack()
 	r_sizeflag = false;
 	comp_recvbytes = 0;
 	serialR = 0;
-	serialS = 0;
+	serialS = 3;
 	recvbytes = 0;
 
 }

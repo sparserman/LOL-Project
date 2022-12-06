@@ -17,14 +17,13 @@ void STATE_INIT::recv_sta()
 	printf("%s\n", msg);
 	
 	
+	unsigned int pack = Manager_Protocol::getInstance().Packing_prot(MAIN_LOGJOIN, SUB_LOGJOIN_LOGIN, 1, DETALI_LOGIN_RESULT);
+	Manager_LOGJOIN::getInstance().PackPacket(client, pack, JOIN_SUCCESS_MSG);
 }
 
 void STATE_INIT::send_sta()
 {
 	printf("STATE_INIT send\n");
-
-	unsigned int pack = Manager_Protocol::getInstance().Packing_prot(MAIN_LOGJOIN, SUB_LOGJOIN_LOGIN, 1, DETALI_LOGIN_RESULT);
-	Manager_LOGJOIN::getInstance().PackPacket(client, pack, JOIN_SUCCESS_MSG);
 
 	client->setState(client->getsta_login());
 }
