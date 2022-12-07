@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class ChampMove : MonoBehaviour
+public class ChampController : MonoBehaviour
 {
     GameManager gm;
 
-    public Camera cam;              // 메인 카메라
     private Animator ani;
     private ChamState state;        // 챔피언 스탯
     private NavMeshAgent agent;
@@ -71,6 +70,8 @@ public class ChampMove : MonoBehaviour
     public float ECoolTime;
     public float RCoolTime;
 
+    public bool serverConnected = false;
+
     void Start()
     {
         gm = GameManager.GetInstance;
@@ -81,12 +82,14 @@ public class ChampMove : MonoBehaviour
 
         ani = GetComponent<Animator>();
 
-        
+
         state.Speed = 340;
         state.AttackSpeed = 1.5f;
     }
+
     void Update()
     {
+        Click();
         Move();
         QSkill();
         WSkill();
@@ -96,6 +99,9 @@ public class ChampMove : MonoBehaviour
         Stop();
 
         Test();
+
+        // 공속
+        ani.SetFloat("AttackSpeed", 1.5f / state.AttackSpeed);
     }
 
     private void Test()
@@ -111,7 +117,7 @@ public class ChampMove : MonoBehaviour
         }
 
         // 마우스 업
-        if(Input.GetMouseButtonUp(1))
+        if (Input.GetMouseButtonUp(1))
         {
             clickCheck = true;
         }
@@ -119,7 +125,7 @@ public class ChampMove : MonoBehaviour
 
     private void Stop()
     {
-        if(Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKeyDown(KeyCode.S))
         {
             // 공격 중지
             ani.SetBool("isAttack", false);
@@ -130,7 +136,7 @@ public class ChampMove : MonoBehaviour
             agent.speed = 0;
 
             // E 스킬 중지
-            if(!ani.GetBool("isESkill"))
+            if (!ani.GetBool("isESkill"))
             {
                 eSkillTarget = null;
             }
@@ -142,19 +148,19 @@ public class ChampMove : MonoBehaviour
             clickCheck = true;
             clickTime = 0;
         }
-        
-        if(!clickCheck)
+
+        if (!clickCheck)
         {
             clickTime += Time.deltaTime;
         }
     }
 
-    // 이동
-    private void Move()
+    // 클릭 위치 또는 대상 전송
+    private void Click()
     {
+        // 패킷 보낼 곳
         if (clickCheck)
         {
-            ani.SetFloat("AttackSpeed", 1.5f / state.AttackSpeed);
             // 마우스 우클릭 시
             if (Input.GetMouseButton(1) && !moveStop)
             {
@@ -162,47 +168,43 @@ public class ChampMove : MonoBehaviour
                 clickCheck = false;
                 // 마우스 이동용 위치 찾기
                 RaycastHit hit;
-                if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
                 {
-                    // 목표지 설정
-                    ChampSetDestination(hit.point);
-                    deInfo = hit.transform;
-                    
+                    if(serverConnected)
+                    {
+                        // 패킷으로 위치 전송 hit.point.x, hit.point.y
+                    }
+                    else
+                    {
+                        SetMovePos(new Vector2(1,1));
+                    }
                 }
 
                 // 공격용 위치 찾기
-                if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
                 {
-                    // 목표 설정
-                    if (!RSkillCheck)
-                    {
-                        attackTarget = hit.collider.gameObject;
-                    }
+                    // 목표를 패킷으로 숫자로 치환해서 보내기
                 }
                 else
                 {
                     // 이동 시 목표 제거
-                    attackTarget = null;
-                    eSkillTarget = null;
-                    ani.SetBool("isAttack", false);  // 이동 시 공격 모션 끄기
-                    ani.SetInteger("AttackMotion", 0);  // 이동 시 공격 모션 끄기
-
-                    // 공격 캔슬 시
-                    if (!hitCheck)
-                    {
-                        attackCheck = true;
-                        if (m_AttackDelayCoroutine != null)
-                        {
-                            Debug.Log("스탑3");
-                            StopCoroutine(m_AttackDelayCoroutine);
-                            m_AttackDelayCoroutine = null;
-                        }
-                    }
+                    // 목표를 패킷으로 보내서 null로 바꾸기
                 }
             }
         }
 
-        if (!ani.GetBool("isQSkill"))
+        // 마우스를 떼면 다시 클릭가능상태로 바꾸기
+        if (Input.GetMouseButtonUp(1))
+        {
+            clickCheck = true;
+            clickTime = 0;
+        }
+    }
+
+    // 클릭 위치로 이동
+    private void Move()
+    {
+        if (!moveStop)
         {
             // 방향전환과 이동
             if (ani.GetInteger("isMove") == 2)
@@ -222,12 +224,40 @@ public class ChampMove : MonoBehaviour
                 }
             }
         }
+    }
 
-        // 마우스를 떼면 다시 클릭가능상태로 바꾸기
-        if (Input.GetMouseButtonUp(1))
+    // 이동 위치 및 공격 대상 설정
+    private void SetMovePos(Vector2 p_pos)
+    {
+        // 이동 시 목표 제거
+        attackTarget = null;
+        eSkillTarget = null;
+        ani.SetBool("isAttack", false);  // 이동 시 공격 모션 끄기
+        ani.SetInteger("AttackMotion", 0);  // 이동 시 공격 모션 끄기
+
+        // 공격 캔슬 시
+        if (!hitCheck)
         {
-            clickCheck = true;
-            clickTime = 0;
+            attackCheck = true;
+            if (m_AttackDelayCoroutine != null)
+            {
+                Debug.Log("스탑3");
+                StopCoroutine(m_AttackDelayCoroutine);
+                m_AttackDelayCoroutine = null;
+            }
+        }
+
+        // 목표지 설정
+        ChampSetDestination(p_pos);
+        //deInfo = hit.transform;   // 이거 어쩌지
+    }
+
+    public void SetAttackTarget(int p_champNum)
+    {
+        // 목표 설정
+        if (!RSkillCheck)
+        {
+            attackTarget = gm.playerList[p_champNum].gameObject;
         }
     }
 
@@ -352,7 +382,7 @@ public class ChampMove : MonoBehaviour
         if (lastAttackTarget.tag == "Mob")
         {
             Mob mob = lastAttackTarget.GetComponent<Mob>();
-            if(mob.attackTarget == null)
+            if (mob.attackTarget == null)
             {
                 mob.attackTarget = gameObject;
                 mob.HitCheck();
@@ -361,7 +391,7 @@ public class ChampMove : MonoBehaviour
         else if (lastAttackTarget.name == "Baron")
         {
             Baron baron = lastAttackTarget.GetComponent<Baron>();
-            if(baron.attackTarget == null)
+            if (baron.attackTarget == null)
             {
                 baron.attackTarget = gameObject;
             }
@@ -394,17 +424,16 @@ public class ChampMove : MonoBehaviour
     // 패시브
     public void PassiveEvent(int num)
     {
-        switch(num)
+        switch (num)
         {
             case 0:
                 PoppyPassiveSkill cpyObj;
                 cpyObj = Instantiate<PoppyPassiveSkill>(PassiveSkillObj
                     , new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), Quaternion.identity);
                 cpyObj.transform.forward = attackTarget.transform.position;
-                cpyObj.transform.rotation = new Quaternion(0,0,0,90);
+                cpyObj.transform.rotation = new Quaternion(0, 0, 0, 90);
                 cpyObj.gameObject.SetActive(true);
-                // 챔프 통합하면서 오류 생긴 함수
-                //cpyObj.Init(attackTarget, this);
+                cpyObj.Init(attackTarget, this);
                 // 방패 제거
                 Shield.SetActive(false);
                 break;
@@ -414,36 +443,41 @@ public class ChampMove : MonoBehaviour
 
                 StartCoroutine(SkillCooltime(0));
                 break;
-                
+
         }
     }
 
     // Q 스킬
     private void QSkill()
     {
-        if(Input.GetKeyDown(KeyCode.Q) && !moveStop && QSkillCool)
+        if (Input.GetKeyDown(KeyCode.Q) && !moveStop && QSkillCool)
         {
-            moveStop = true;
-            ani.SetBool("isQSkill", true);
-            ani.SetInteger("isMove", 0);
-            ani.SetInteger("AttackMotion", 0);
-            ani.SetBool("isAttack", false);
-            //attackTarget = null;
-            agent.speed = 0;
-            QSkillCool = false;
-
             RaycastHit hit;
-            
-            if(Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
+
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
             {
+                // 방향 구한거 값 보내기
                 SetDir(hit.point);
             }
-
-            // 플레이어 방향
-            transform.forward = destination;
-
-            StartCoroutine(SkillCooltime(1));
         }
+    }
+
+    // Q 스킬 실행하기
+    public void QSkillPlay()
+    {
+        moveStop = true;
+        ani.SetBool("isQSkill", true);
+        ani.SetInteger("isMove", 0);
+        ani.SetInteger("AttackMotion", 0);
+        ani.SetBool("isAttack", false);
+        //attackTarget = null;
+        agent.speed = 0;
+        QSkillCool = false;
+
+        // 플레이어 방향
+        transform.forward = destination;
+
+        StartCoroutine(SkillCooltime(1));
     }
 
     // Q 스킬 이펙트 생성
@@ -477,7 +511,7 @@ public class ChampMove : MonoBehaviour
             cpyObj.transform.forward = new Vector3(0, 90, 0);
             cpyObj.SetActive(true);
 
-            if(m_WSkillEffectCoroutine != null)
+            if (m_WSkillEffectCoroutine != null)
             {
                 StopCoroutine(m_WSkillEffectCoroutine);
                 m_WSkillEffectCoroutine = null;
@@ -495,18 +529,18 @@ public class ChampMove : MonoBehaviour
         ani.SetBool("isWSkill", true);
         state.Speed += 300;
         float t = 0;
-        while(true)
+        while (true)
         {
             yield return null;
             t += Time.deltaTime;
 
-            if(t > 0.5f)
+            if (t > 0.5f)
             {
                 ani.SetBool("isWSkill", false);
             }
 
             obj.transform.position = transform.position;
-            if(t >= 2)
+            if (t >= 2)
             {
                 break;
             }
@@ -524,7 +558,7 @@ public class ChampMove : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E) && !moveStop && ESkillCool)
         {
-            if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
             {
                 SetDir(hit.point);
                 eSkillTarget = hit.collider.gameObject;
@@ -535,7 +569,7 @@ public class ChampMove : MonoBehaviour
             }
         }
 
-        if(eSkillTarget != null)
+        if (eSkillTarget != null)
         {
             if (moveStop || !ESkillCool)
             {
@@ -569,7 +603,7 @@ public class ChampMove : MonoBehaviour
                 // 플레이어 방향
                 var dir = new Vector3(eSkillTarget.transform.position.x, transform.position.y, eSkillTarget.transform.position.z) - transform.position;
                 transform.forward = dir;
-                
+
 
 
                 if (m_MoveCoroutine != null)
@@ -602,7 +636,7 @@ public class ChampMove : MonoBehaviour
 
     // 목표까지 정해진 시간에 맞게 이동
     Coroutine m_MoveCoroutine = null;
-    IEnumerator SetDirectionMove( Vector3 p_targetwpos, float p_sec )
+    IEnumerator SetDirectionMove(Vector3 p_targetwpos, float p_sec)
     {
         Debug.Log("코루틴 시작");
         Vector3 Currpos = transform.position;
@@ -641,7 +675,7 @@ public class ChampMove : MonoBehaviour
             {
                 eSkillTarget.transform.position = temppos;
             }
-            if( (targetpos - temppos).sqrMagnitude <= 0.5f )
+            if ((targetpos - temppos).sqrMagnitude <= 0.5f)
             {
                 break;
             }
@@ -663,10 +697,10 @@ public class ChampMove : MonoBehaviour
     // R 스킬
     private void RSkill()
     {
-        if(Input.GetKeyDown(KeyCode.R) && !moveStop && !RSkillCheck && RSkillCool)
+        if (Input.GetKeyDown(KeyCode.R) && !moveStop && !RSkillCheck && RSkillCool)
         {
             RSkillCool = false;
-            if(m_RSkillCoroutine != null)
+            if (m_RSkillCoroutine != null)
             {
                 StopCoroutine(m_RSkillCoroutine);
                 m_RSkillCoroutine = null;
@@ -724,7 +758,7 @@ public class ChampMove : MonoBehaviour
                 break;
             }
 
-            if(t > 5)
+            if (t > 5)
             {
                 ani.SetBool("isRSkill", false);
                 ani.SetBool("RSkillCancel", true);
@@ -742,14 +776,14 @@ public class ChampMove : MonoBehaviour
     // R 스킬
     private void RSkillUse()
     {
-        
+
         ani.SetBool("isRSkill", false);
         ani.SetInteger("isMove", 0);
         agent.speed = 0;
 
         RaycastHit hit;
 
-        if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
         {
             SetDir(hit.point);
         }
@@ -757,12 +791,12 @@ public class ChampMove : MonoBehaviour
         // 플레이어 방향
         transform.forward = new Vector3(destination.x, -90, destination.z);
 
-        
+
     }
 
     public void RSkillEvent(int num)
     {
-        switch(num)
+        switch (num)
         {
             case 0: // 차지안한 R 스킬
                 RSkillCool = false;
@@ -786,7 +820,7 @@ public class ChampMove : MonoBehaviour
                 cpyObj2.transform.forward = new Vector3(destination.x, 0, destination.z);
 
                 // R 스킬 최대 범위
-                if(RSkillTime > 1.5f)
+                if (RSkillTime > 1.5f)
                 {
                     RSkillTime = 1.5f;
                 }

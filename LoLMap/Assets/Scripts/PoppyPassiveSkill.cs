@@ -6,8 +6,7 @@ public class PoppyPassiveSkill : MonoBehaviour
 {
 
     protected GameObject target;
-    protected ChampMove Champ;
-    protected ChampMove2 Champ2;
+    protected ChampController Champ;
 
     private bool hit = false;   // 공격 됐는지
     private bool end = false;   // 도착 했는지
@@ -29,20 +28,12 @@ public class PoppyPassiveSkill : MonoBehaviour
         startTime = Time.time;
     }
 
-    public void Init( GameObject p_target, ChampMove p_poppy )
+    public void Init( GameObject p_target, ChampController p_poppy )
     {
         Champ = p_poppy;
         target = p_target;
 
         target = Champ.attackTarget;
-    }
-
-    public void Init(GameObject p_target, ChampMove2 p_rengar)
-    {
-        Champ2 = p_rengar;
-        target = p_target;
-
-        target = Champ2.attackTarget;
     }
 
     void Update()
