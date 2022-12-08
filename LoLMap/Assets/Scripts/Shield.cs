@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Shield : MonoBehaviour
 {
-    public GameObject poppy;
-
     private void Start()
     {
         Destroy(gameObject, 5f);
@@ -20,8 +18,8 @@ public class Shield : MonoBehaviour
     {
         Vector3 temppos;
         temppos = transform.position;
-        temppos = poppy.transform.position;
-        temppos.y = poppy.transform.position.y + 1;
+        temppos = GameManager.GetInstance.playerList[0].transform.position;
+        temppos.y = GameManager.GetInstance.playerList[0].transform.position.y + 1;
 
         transform.position = temppos;
     }

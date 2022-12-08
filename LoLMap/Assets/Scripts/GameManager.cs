@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
     public List<GameObject> allList;
     public List<GameObject> playerList;
 
+    public bool serverConnected = false;
+
     void Start()
     {
 
@@ -16,6 +18,14 @@ public class GameManager : MonoBehaviour
     {
 
     }
+
+    public void ChampSelect(int p_champNum)
+    {
+        // 카메라 고정 및 챔피언 조종권 부여
+        Camera.main.GetComponent<CameraControl>().m_Champ = playerList[(int)p_champNum];
+        playerList[(int)p_champNum].GetComponent<ChampController>().inOperation = true;
+    }
+
 
     private static GameManager instance = null;
 

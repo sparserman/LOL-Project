@@ -101,11 +101,13 @@ public class Sever : SingleTonMonobehaviour<Sever>
             // 서버 연결 성공시 
             ThreadCreate();     //쓰레드 생성 이시발롬이 버그의 원인이었음 죽일뻔함;;;
 
-            poppy.serverConnected = true;
+            GameManager.GetInstance.serverConnected = true;
         }
         catch (SocketException e)
         {
             Debug.Log("Connection Failed:" + e.Message);
+            // 실패시 서버 연결 안된거라 무조건 뽀삐
+            GameManager.GetInstance.ChampSelect(0);
         }
 
         int protocol = Manager_Protocol.Instance.Packing_prot(Pro.MAIN_LOGJOIN, Pro.SUB_LOGJOIN_LOGIN);

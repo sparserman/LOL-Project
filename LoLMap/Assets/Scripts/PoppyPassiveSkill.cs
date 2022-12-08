@@ -17,8 +17,6 @@ public class PoppyPassiveSkill : MonoBehaviour
 
     private float startTime;
 
-    public GameObject ShieldObj;
-
     public float num = 0;
 
     
@@ -126,15 +124,16 @@ public class PoppyPassiveSkill : MonoBehaviour
         if(end)
         {
             Debug.Log("πÊ∆– Ω¿µÊ!");
-            if(other.name == "Poppy")
+            if(other.name == "PoppyServer")
             {
                 GameObject cpyObj;
-                cpyObj = Instantiate(ShieldObj, Champ.transform.position, Quaternion.identity);
+                cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyPassiveShield") as GameObject
+                    , Champ.transform.position, Quaternion.identity);
                 cpyObj.SetActive(true);
 
                 Destroy(gameObject);
             }
-            else if(other.tag == "Player")
+            else if(other.tag == "Blue")
             {
                 Destroy(gameObject);
             }

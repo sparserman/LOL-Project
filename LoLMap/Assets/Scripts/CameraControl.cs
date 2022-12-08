@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class CameraControl : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject m_Champ;
+    public GameObject m_Champ;
 
     public float my;
     public float mz;
