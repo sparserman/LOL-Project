@@ -180,8 +180,19 @@ public class ChampController : MonoBehaviour
                 {
                     if(gm.serverConnected)
                     {
-                        int protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.MOVE);
+                        int protocol = 0;
+                        switch (champNum)
+                        {
+                            case ChampNum.POPPY:
+                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.MOVE);
+                                break;
+                            case ChampNum.RENGAR:
+                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.MOVE);
+                                break;
+                        }
                         Sever.Instance.MovePack(protocol, hit.point);
+
+
                         // 패킷으로 위치 전송 hit.point.x, hit.point.y
                     }
                     else
