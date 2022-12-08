@@ -54,6 +54,13 @@ static class Pro
     public const int DETALI_JOIN_SUCCESS = 8;
 }
 
+public struct P
+{
+    public int main;
+    public int sub;
+    public int detail;
+}
+
 public class Sever : SingleTonMonobehaviour<Sever>
 {
     // Start is called before the first frame update
@@ -64,8 +71,10 @@ public class Sever : SingleTonMonobehaviour<Sever>
     Queue<byte[]> s_que = new Queue<byte[]>();
     Queue<byte[]> r_que = new Queue<byte[]>();
 
-    
 
+    public ChampController poppy;
+    public ChampController ganga;
+   
 
     ManualResetEvent s_event;
 
@@ -91,6 +100,8 @@ public class Sever : SingleTonMonobehaviour<Sever>
             this.clientSocket.Connect(serverEndPoint);
             // 서버 연결 성공시 
             ThreadCreate();     //쓰레드 생성 이시발롬이 버그의 원인이었음 죽일뻔함;;;
+
+            poppy.serverConnected = true;
         }
         catch (SocketException e)
         {
@@ -223,7 +234,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         Sever.Instance.clientSocket.Send(packet, 0, packet.Length, SocketFlags.None);
     }
 
-    class Manager_Protocol : SingleTonMonobehaviour<Manager_Protocol>
+    public class Manager_Protocol : SingleTonMonobehaviour<Manager_Protocol>
     {
         bool[] detail_list;
         int list_size;
@@ -273,7 +284,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
             return prot;
         }
-        public void Unpacking_prot(int p_prot)
+        public P Unpacking_prot(int p_prot)
         {
             int temp = 0;
             int main = 0;
@@ -298,6 +309,13 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
             cleanList();
             detail_list = UnpackingDetail(detail);
+
+            P p;
+            p.main = main;
+            p.sub = sub;
+            p.detail = detail;
+
+            return p;
         }
 
         bool[] UnpackingDetail(int args)
@@ -334,7 +352,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
     {
         return string.Join(", ", bytes);
     }
-    void Packing(int p_prot, byte[] p_data) // 프로토콜, 데이터
+    public void Packing(int p_prot, byte[] p_data) // 프로토콜, 데이터
     {
         // 프로토콜
         byte[] type_bytes = BitConverter.GetBytes(p_prot); 
@@ -369,15 +387,37 @@ public class Sever : SingleTonMonobehaviour<Sever>
         Array.Copy(m_data, 0, send_bytes, total_bytes.Length + type_bytes.Length + Snum_bytes.Length, m_data.Length);
 
 
-        
-        
 
 
 
 
+
+        Debug.Log(byteArrayout(send_bytes));
 
         Send(send_bytes);
         // 큐에 푸쉬
+    }
+
+    public void MovePack(int p_protocol, Vector3 p_pos)
+    {
+        byte[] pos_x = BitConverter.GetBytes(p_pos.x);
+        byte[] pos_y = BitConverter.GetBytes(p_pos.y);
+        byte[] pos_z = BitConverter.GetBytes(p_pos.z);
+
+        byte[] send_buf = new byte[sizeof(float) + sizeof(float) + sizeof(float)];
+        int len = 0;
+
+        Array.Copy(pos_x, 0, send_buf, len, pos_x.Length);
+        len += pos_x.Length;
+
+        Array.Copy(pos_y, 0, send_buf, len, pos_y.Length);
+        len += pos_y.Length;
+
+        Array.Copy(pos_z, 0, send_buf, len, pos_z.Length);
+        len += pos_z.Length;
+
+
+        Packing(p_protocol, send_buf);
     }
 
     void UnPacking(byte[] p_buf)
@@ -385,20 +425,63 @@ public class Sever : SingleTonMonobehaviour<Sever>
         byte[] pt = new byte[sizeof(int)];
         Array.Copy(p_buf, pt, sizeof(int));
         int protocol = BitConverter.ToInt32(pt);
-        Manager_Protocol.Instance.Unpacking_prot(protocol);
+        int len = 0;
+        len += sizeof(int);
 
+        P p = Manager_Protocol.Instance.Unpacking_prot(protocol);
 
+        
 
-        Array.Copy(p_buf, sizeof(int) , pt, 0 ,sizeof(int));        //pt에 시리얼넘버 복사
+        Array.Copy(p_buf, len, pt, 0 ,sizeof(int));        //pt에 시리얼넘버 복사
         int S_num = BitConverter.ToInt32(pt);
         Debug.Log("시리얼 넘버 : " + S_num);
+        len += sizeof(int);
+
+        switch (p.main)
+        {
+            case Pro.GAME_SELECT:
+                switch (p.sub)
+                {
+                    case Pro.SUB_Poppy:
+                        
+                        break;
+                    case Pro.SUB_Rengar:
+                        
+                        break;
+                }
+                break;
 
 
-        Array.Copy(p_buf, sizeof(int) + sizeof(int), pt, 0, sizeof(int));        //pt에 데이터 사이즈 복사
-        int data_size = BitConverter.ToInt32(pt);
+            case Pro.GAME_Poppy:
+                switch(p.sub)
+                {
+                    case Pro.MOVE:
+                        Vector3 pos;
+                        Array.Copy(p_buf, len, pt, 0, sizeof(float));
+                        pos.x = BitConverter.ToSingle(pt);
+                        len += sizeof(float);
+
+                        Array.Copy(p_buf, len, pt, 0, sizeof(float));
+                        pos.y = BitConverter.ToSingle(pt);
+                        len += sizeof(float);
+
+                        Array.Copy(p_buf, len, pt, 0, sizeof(float));
+                        pos.z = BitConverter.ToSingle(pt);
+                        len += sizeof(float);
+
+                        Debug.Log("Pos : " + pos.x + "," + pos.y + "," + pos.z);
+
+                        poppy.SetMovePos(pos);
+                        break;
+                }
+                break;
+        }
+
+        //Array.Copy(p_buf, sizeof(int) + sizeof(int), pt, 0, sizeof(int));        //pt에 데이터 사이즈 복사
+        //int data_size = BitConverter.ToInt32(pt);
 
 
-
+        
     }
 
     public static void Recv()

@@ -31,7 +31,7 @@ void STATE_INIT::recv_sta()
 			}
 			else if (client->m_r_count == 1)
 			{
-				unsigned int pack = Manager_Protocol::getInstance().Packing_prot(GAME_SELECT, SUB_Ezreal, 0);
+				unsigned int pack = Manager_Protocol::getInstance().Packing_prot(GAME_SELECT, SUB_Rengar, 0);
 				Manager_LOGJOIN::getInstance().PackPacket(client, pack, JOIN_SUCCESS_MSG);
 			}
 			
@@ -56,12 +56,41 @@ void STATE_INIT::send_sta()
 
 void STATE_GAME::recv_sta()
 {
+	printf("STATE_GAME recv\n");
 
+	Protocol protocol;
+	protocol = Manager_Protocol::getInstance().Unpacking_prot(client->getProt());
+
+	switch (protocol.main)
+	{
+	case GAME_Poppy:
+		printf("들어온 프로토콜이 뽀삐에용\n");
+		switch (protocol.sub)
+		{
+		case SUB_MOVE:
+			float x = 0;
+			float y = 0;
+			float z = 0;
+			Manager_GAME::getInstance().UnPacking(client->getBuf(), x, y, z);
+
+			printf("%f, %f, %f", x, y, z);
+
+
+			unsigned int pack = Manager_Protocol::getInstance().Packing_prot(GAME_Poppy, SUB_MOVE, 0);
+			Manager_GAME::getInstance().MovePacking(client, pack, x, y, z);
+
+			break;
+
+		}//protocol.sub따라 실행
+		break;
+
+
+	}//protocol.main따라 실행
 }
 
 void STATE_GAME::send_sta()
 {
-
+	printf("STATE_GAME send\n");
 }
 
 //STATE_LOGIN 리시브 샌드

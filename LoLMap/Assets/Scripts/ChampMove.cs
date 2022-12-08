@@ -71,6 +71,8 @@ public class ChampMove : MonoBehaviour
     public float ECoolTime;
     public float RCoolTime;
 
+    public Vector3 Server_pos;
+
     void Start()
     {
         gm = GameManager.GetInstance;
@@ -96,6 +98,7 @@ public class ChampMove : MonoBehaviour
         Stop();
 
         Test();
+        
     }
 
     private void Test()

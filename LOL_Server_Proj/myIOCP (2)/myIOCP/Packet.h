@@ -69,6 +69,9 @@ public:
 	void Push(char* p_buf, int p_size);
 	void UnPacking(char* p_buf, char* p_data);
 
+	void MovePosPacking(char* p_buf, float p_x, float p_y, float p_z);
+	
+
 	// 프로토콜이랑 버퍼위치를 제공하는 함수 만들기
 	char* getBuf() { return recvbuf; };
 	unsigned int getProt();

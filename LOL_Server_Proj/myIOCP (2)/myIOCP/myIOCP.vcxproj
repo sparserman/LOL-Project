@@ -143,6 +143,7 @@
     <ClInclude Include="C_State.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="IOCP.h" />
+    <ClInclude Include="M_Game.h" />
     <ClInclude Include="M_DataBase.h" />
     <ClInclude Include="M_LogFile.h" />
     <ClInclude Include="M_main.h" />
@@ -169,6 +170,7 @@
     <ClCompile Include="Global.cpp" />
     <ClCompile Include="IOCP.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="M_game.cpp" />
     <ClCompile Include="M_DataBase.cpp" />
     <ClCompile Include="M_LogFile.cpp" />
     <ClCompile Include="M_LogJoin.cpp">

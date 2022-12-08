@@ -4,6 +4,7 @@ class Session;
 #define __C_STATE_H_
 #include "Global.h"
 #include "M_LogJoin.h"
+#include "M_Game.h"
 //#include "M_Room.h"
 
 class C_State

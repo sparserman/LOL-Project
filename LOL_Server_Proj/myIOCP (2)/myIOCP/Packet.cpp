@@ -176,6 +176,16 @@ void Packet::UnPacking(char* p_buf, char* p_data)
 
 }
 
+void Packet::MovePosPacking(char* p_buf ,float p_x, float p_y, float p_z)
+{
+	char* ptr = p_buf;
+
+
+	
+}
+
+
+
 int Packet::CompleteRecv_pak(int p_completebyte)
 {
 	comp_recvbytes += p_completebyte;

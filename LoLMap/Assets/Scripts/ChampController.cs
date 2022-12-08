@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+
 public class ChampController : MonoBehaviour
 {
     GameManager gm;
@@ -172,11 +173,13 @@ public class ChampController : MonoBehaviour
                 {
                     if(serverConnected)
                     {
+                        int protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.MOVE);
+                        Sever.Instance.MovePack(protocol, hit.point);
                         // 패킷으로 위치 전송 hit.point.x, hit.point.y
                     }
                     else
                     {
-                        SetMovePos(new Vector2(1,1));
+                        SetMovePos(hit.point);
                     }
                 }
 
@@ -227,7 +230,7 @@ public class ChampController : MonoBehaviour
     }
 
     // 이동 위치 및 공격 대상 설정
-    private void SetMovePos(Vector2 p_pos)
+    public void SetMovePos(Vector3 p_pos)
     {
         // 이동 시 목표 제거
         attackTarget = null;

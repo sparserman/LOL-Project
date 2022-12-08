@@ -6498,6 +6498,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serverIp: 127.0.0.1
+  poppy: {fileID: 665699698}
+  ganga: {fileID: 0}
 --- !u!1 &657956246
 GameObject:
   m_ObjectHideFlags: 0
@@ -6729,7 +6731,7 @@ MonoBehaviour:
   mapMask:
     serializedVersion: 2
     m_Bits: 64
-  deltaRotation: 0
+  deltaRotation: 1000
   moveStop: 0
   PCoolTime: 0
   QCoolTime: 0
