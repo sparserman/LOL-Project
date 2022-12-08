@@ -1054,6 +1054,45 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 97784154}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &128248314 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5090374912051414712, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+  m_PrefabInstance: {fileID: 2011336662}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &128248315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 128248314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3132d56c541e80046ba5ea51590ef385, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  champNum: 1
+  attackTarget: {fileID: 0}
+  eSkillTarget: {fileID: 0}
+  PSkillCool: 1
+  shield: {fileID: 0}
+  wallMask:
+    serializedVersion: 2
+    m_Bits: 128
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 256
+  mapMask:
+    serializedVersion: 2
+    m_Bits: 64
+  deltaRotation: 1000
+  moveStop: 0
+  PCoolTime: 0
+  QCoolTime: 0
+  WCoolTime: 0
+  ECoolTime: 0
+  RCoolTime: 0
+  inOperation: 0
 --- !u!1 &141701114
 GameObject:
   m_ObjectHideFlags: 0
@@ -2792,7 +2831,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 14
+  m_RootOrder: 15
   m_LocalEulerAnglesHint: {x: 0, y: -40.596, z: 0}
 --- !u!1 &288372413
 GameObject:
@@ -3877,7 +3916,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1351115600139119485, guid: f9c7aca034e9e2b41a8daf5fd4b7b050, type: 3}
       propertyPath: m_Name
-      value: Poppy (1)
+      value: PoppyServer
       objectReference: {fileID: 0}
     - target: {fileID: 1351115600139119485, guid: f9c7aca034e9e2b41a8daf5fd4b7b050, type: 3}
       propertyPath: m_Layer
@@ -7000,16 +7039,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3132d56c541e80046ba5ea51590ef385, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  champNum: 0
   attackTarget: {fileID: 0}
-  PassiveSkillObj: {fileID: 0}
-  Shield: {fileID: 0}
-  QSkillObj: {fileID: 0}
-  WSkillObj: {fileID: 0}
-  RSkillObj: {fileID: 0}
-  RSkillScript: {fileID: 0}
-  RSkillEffectObj: {fileID: 0}
   eSkillTarget: {fileID: 0}
   PSkillCool: 1
+  shield: {fileID: 1137478716}
   wallMask:
     serializedVersion: 2
     m_Bits: 128
@@ -7026,7 +7060,7 @@ MonoBehaviour:
   WCoolTime: 0
   ECoolTime: 0
   RCoolTime: 0
-  serverConnected: 0
+  inOperation: 0
 --- !u!1 &670047264
 GameObject:
   m_ObjectHideFlags: 0
@@ -9044,7 +9078,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1351115600139119485, guid: f9c7aca034e9e2b41a8daf5fd4b7b050, type: 3}
       propertyPath: m_Name
-      value: Poppy
+      value: PoppyClient
       objectReference: {fileID: 0}
     - target: {fileID: 1351115600139119485, guid: f9c7aca034e9e2b41a8daf5fd4b7b050, type: 3}
       propertyPath: m_Layer
@@ -10509,7 +10543,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 18
+  m_RootOrder: 19
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &963194225
 GameObject:
@@ -12201,6 +12235,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1134471259}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1137478716 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2162090296935393148, guid: f9c7aca034e9e2b41a8daf5fd4b7b050, type: 3}
+  m_PrefabInstance: {fileID: 452094823}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1154346186
 GameObject:
   m_ObjectHideFlags: 0
@@ -17520,7 +17559,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 16
+  m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: 0, y: -70.998, z: 0}
 --- !u!1 &1676102109
 GameObject:
@@ -17617,7 +17656,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 17
+  m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: 0, y: -19.209, z: 0}
 --- !u!1 &1700723468
 GameObject:
@@ -18005,7 +18044,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 15
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1772347092
 GameObject:
@@ -19855,7 +19894,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   allList: []
-  playerList: []
+  playerList:
+  - {fileID: 665699697}
+  serverConnected: 0
 --- !u!4 &1950924008
 Transform:
   m_ObjectHideFlags: 0
@@ -20455,6 +20496,80 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1983113979}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &2011336662
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_RootOrder
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 63.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 32.96
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414706, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414712, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_Name
+      value: RengarServer
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414712, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414713, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: cam
+      value: 
+      objectReference: {fileID: 963194227}
+    - target: {fileID: 5090374912051414713, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: ESkillObj
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5090374912051414713, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+      propertyPath: WSkillObj
+      value: 
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 5090374912051414713, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
+  m_SourcePrefab: {fileID: 100100000, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
 --- !u!1 &2016558362
 GameObject:
   m_ObjectHideFlags: 0
@@ -21382,7 +21497,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5090374912051414712, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
       propertyPath: m_Name
-      value: Rengar
+      value: RengarClient
       objectReference: {fileID: 0}
     - target: {fileID: 5090374912051414712, guid: 0629a225954c7de46a05db3b150fcfd1, type: 3}
       propertyPath: m_IsActive

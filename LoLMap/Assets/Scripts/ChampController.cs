@@ -3,17 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum ChampNum
+{
+    POPPY = 0, RENGAR
+}
 
 public class ChampController : MonoBehaviour
 {
     GameManager gm;
+
+    public ChampNum champNum;       // 챔피언 번호
 
     private Animator ani;
     private ChamState state;        // 챔피언 스탯
     private NavMeshAgent agent;
 
     private Vector3 destination;    // 목적지 좌표
-    private Transform deInfo;         // 목적지 정보
 
     private bool clickCheck = true;        // 꾹 누를때 천천히 반복하기 위함
     private float clickTime = 0;            // 클릭 딜레이
@@ -21,15 +26,6 @@ public class ChampController : MonoBehaviour
     public GameObject attackTarget;    // 공격목표
 
     private GameObject lastAttackTarget;    // 가장 최근 공격목표
-
-    public PoppyPassiveSkill PassiveSkillObj;        // Passive 스킬 이펙트
-    public GameObject Shield;   // 방패
-
-    public GameObject QSkillObj;        // Q 스킬 이펙트
-    public GameObject WSkillObj;        // W 스킬 이펙트
-    public GameObject RSkillObj;        // R 스킬 범위 이펙트
-    public Shot RSkillScript;              // R 스킬 차지 스크립트
-    public GameObject RSkillEffectObj;  // R 스킬 회전 이펙트
 
     private int attackCount = 0;     // 공격 모션 번호
     private bool attackCheck = true;     // 공격 장전 상태
@@ -48,6 +44,8 @@ public class ChampController : MonoBehaviour
     private bool WSkillCool = true;          // W 스킬 사용 가능 상태 (쿨타임)
     private bool ESkillCool = true;          // E 스킬 사용 가능 상태 (쿨타임)
     private bool RSkillCool = true;          // R 스킬 사용 가능 상태 (쿨타임)
+
+    public GameObject shield;
 
     [SerializeField]
     private LayerMask wallMask;        // 벽 전용
@@ -71,7 +69,8 @@ public class ChampController : MonoBehaviour
     public float ECoolTime;
     public float RCoolTime;
 
-    public bool serverConnected = false;
+    // 조작 가능 여부
+    public bool inOperation = false;
 
     void Start()
     {
@@ -83,26 +82,34 @@ public class ChampController : MonoBehaviour
 
         ani = GetComponent<Animator>();
 
-
-        state.Speed = 340;
-        state.AttackSpeed = 1.5f;
+        InitSetting();
     }
 
     void Update()
     {
-        Click();
-        Move();
-        QSkill();
-        WSkill();
-        ESkill();
-        RSkill();
+        if (inOperation)
+        {
+            Click();
+            QSkill();
+            WSkill();
+            ESkill();
+            RSkill();
+        }
         Attack();
         Stop();
+        Move();
 
         Test();
 
         // 공속
         ani.SetFloat("AttackSpeed", 1.5f / state.AttackSpeed);
+    }
+
+    private void InitSetting()
+    {
+        state.HP = 600;
+        state.Speed = 340;
+        state.AttackSpeed = 1.5f;
     }
 
     private void Test()
@@ -143,7 +150,7 @@ public class ChampController : MonoBehaviour
             }
         }
 
-        if (clickTime >= 0.2f)
+        if (clickTime >= 0.1f)
         {
             // 클릭 가능 상태로 바꾸기
             clickCheck = true;
@@ -171,7 +178,7 @@ public class ChampController : MonoBehaviour
                 RaycastHit hit;
                 if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
                 {
-                    if(serverConnected)
+                    if(gm.serverConnected)
                     {
                         int protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.MOVE);
                         Sever.Instance.MovePack(protocol, hit.point);
@@ -186,12 +193,25 @@ public class ChampController : MonoBehaviour
                 // 공격용 위치 찾기
                 if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
                 {
+                    // 리스트에서 적 찾기
+                    int num = -1;
+                    for (int i = 0; i < gm.allList.Count; i++)
+                    {
+                        if (gm.allList[i] == hit.collider.gameObject)
+                        {
+                            num = i;
+                        }
+                    }
+
                     // 목표를 패킷으로 숫자로 치환해서 보내기
-                }
-                else
-                {
-                    // 이동 시 목표 제거
-                    // 목표를 패킷으로 보내서 null로 바꾸기
+                    if (gm.serverConnected)
+                    {
+                        // num 보내기
+                    }
+                    else
+                    {
+                        SetAttackTarget(num);
+                    }
                 }
             }
         }
@@ -260,16 +280,7 @@ public class ChampController : MonoBehaviour
         // 목표 설정
         if (!RSkillCheck)
         {
-            attackTarget = gm.playerList[p_champNum].gameObject;
-        }
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        if (collision.collider.CompareTag("Wall") && deInfo.CompareTag("Wall"))
-        {
-            ani.SetInteger("isMove", 0);
-            agent.speed = 0;
+            attackTarget = gm.allList[p_champNum].gameObject;
         }
     }
 
@@ -430,15 +441,15 @@ public class ChampController : MonoBehaviour
         switch (num)
         {
             case 0:
-                PoppyPassiveSkill cpyObj;
-                cpyObj = Instantiate<PoppyPassiveSkill>(PassiveSkillObj
+                GameObject cpyObj;
+                cpyObj = Instantiate<GameObject>(Resources.Load("Prefabs/" + "PoppyPassiveEffect") as GameObject
                     , new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), Quaternion.identity);
                 cpyObj.transform.forward = attackTarget.transform.position;
                 cpyObj.transform.rotation = new Quaternion(0, 0, 0, 90);
                 cpyObj.gameObject.SetActive(true);
-                cpyObj.Init(attackTarget, this);
+                cpyObj.GetComponent<PoppyPassiveSkill>().Init(attackTarget, this);
                 // 방패 제거
-                Shield.SetActive(false);
+                shield.SetActive(false);
                 break;
             case 1:
                 ani.SetBool("isPassive", false);
@@ -446,7 +457,6 @@ public class ChampController : MonoBehaviour
 
                 StartCoroutine(SkillCooltime(0));
                 break;
-
         }
     }
 
@@ -459,15 +469,23 @@ public class ChampController : MonoBehaviour
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
             {
-                // 방향 구한거 값 보내기
-                SetDir(hit.point);
+                if(gm.serverConnected)
+                {
+                    // 방향 구한거 값 보내기
+                }
+                else
+                {
+                    QSkillPlay(hit.point);
+                }
             }
         }
     }
 
     // Q 스킬 실행하기
-    public void QSkillPlay()
+    public void QSkillPlay(Vector3 p_pos)
     {
+        SetDir(p_pos);
+
         moveStop = true;
         ani.SetBool("isQSkill", true);
         ani.SetInteger("isMove", 0);
@@ -510,9 +528,9 @@ public class ChampController : MonoBehaviour
             WSkillCool = false;
             Debug.Log("W");
             GameObject cpyObj;
-            cpyObj = Instantiate(WSkillObj, transform.position, Quaternion.identity);
+            cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyWEffect") as GameObject
+                , transform.position, Quaternion.identity);
             cpyObj.transform.forward = new Vector3(0, 90, 0);
-            cpyObj.SetActive(true);
 
             if (m_WSkillEffectCoroutine != null)
             {
@@ -722,7 +740,8 @@ public class ChampController : MonoBehaviour
         Vector3 temppos;
         temppos = transform.position;
         temppos.y = 3;
-        cpyObj = Instantiate(RSkillEffectObj, temppos, Quaternion.identity);
+        cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyRChargeEffect") as GameObject
+            , temppos, Quaternion.identity);
         cpyObj.SetActive(true);
 
         // 정리
@@ -805,7 +824,8 @@ public class ChampController : MonoBehaviour
                 RSkillCool = false;
                 Debug.Log("R");
                 GameObject cpyObj;
-                cpyObj = Instantiate(RSkillObj, transform.position, Quaternion.identity);
+                cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyREffectPos") as GameObject
+                    , transform.position, Quaternion.identity);
                 cpyObj.transform.forward = new Vector3(destination.x, 0, destination.z);
                 cpyObj.SetActive(true);
                 // 삭제
@@ -818,8 +838,9 @@ public class ChampController : MonoBehaviour
                 break;
             case 2: // 차지한 R 스킬
                 Debug.Log("Charge R");
-                Shot cpyObj2;
-                cpyObj2 = Instantiate<Shot>(RSkillScript, transform.position, Quaternion.identity);
+                GameObject cpyObj2;
+                cpyObj2 = Instantiate<GameObject>(Resources.Load("Prefabs/" + "PoppyREffectChargePos") as GameObject
+                    , transform.position, Quaternion.identity);
                 cpyObj2.transform.forward = new Vector3(destination.x, 0, destination.z);
 
                 // R 스킬 최대 범위
@@ -828,7 +849,7 @@ public class ChampController : MonoBehaviour
                     RSkillTime = 1.5f;
                 }
 
-                cpyObj2.Fire(RSkillTime);
+                cpyObj2.GetComponent<Shot>().Fire(RSkillTime);
 
                 cpyObj2.gameObject.SetActive(true);
                 RSkillTime = 0;
@@ -865,6 +886,10 @@ public class ChampController : MonoBehaviour
             case 0:
                 yield return new WaitForSeconds(PCoolTime);
                 PSkillCool = true;
+                if (champNum == ChampNum.POPPY)
+                {
+                    shield.SetActive(true);
+                }
                 break;
             case 1:
                 yield return new WaitForSeconds(QCoolTime);
