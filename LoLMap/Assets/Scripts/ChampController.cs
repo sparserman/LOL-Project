@@ -60,7 +60,7 @@ public class ChampController : MonoBehaviour
     [SerializeField]
     private bool moveStop = false;      // 이동 중지
 
-    private bool hide = false;      // 은신 상태
+    public bool hide = false;      // 은신 상태
 
     // 쿨타임 시간
     public float PCoolTime;
@@ -302,42 +302,11 @@ public class ChampController : MonoBehaviour
         {
             lastAttackTarget = attackTarget;
 
-            // 패시브 공격 목표에 도착 시
-            if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 5f && PSkillCool)
-            {
-                // 이동 중지
-                ani.SetInteger("isMove", 0);
-                agent.speed = 0;
-                // 적 방향 쳐다보기
-                transform.forward = attackTarget.transform.position - transform.position;
-
-                // 어택 모션 끄기
-                ani.SetInteger("AttackMotion", 0);
-
-                // 공격 가능 상태 일때
-                if (attackCheck)
-                {
-                    moveStop = true;
-                    PSkillCool = false;
-                    ani.SetBool("isPassive", true);
-
-                    if (m_AttackDelayCoroutine != null)
-                    {
-                        StopCoroutine(m_AttackDelayCoroutine);
-                        m_AttackDelayCoroutine = null;
-                    }
-
-                    ani.SetBool("isAttack", true);
-
-                    m_AttackDelayCoroutine = StartCoroutine(AttackDelay());
-
-                    attackCheck = false;
-                }
-
-            }
+            // 패시브
+            ChampPassive((int)champNum);
 
             // 기본 공격 목표에 도착 시
-            else if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 2.5f && !PSkillCool)
+            if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 2.5f && !PSkillCool)
             {
                 // 이동 중지
                 ani.SetInteger("isMove", 0);
@@ -391,6 +360,55 @@ public class ChampController : MonoBehaviour
 
                 ChampSetDestination(attackTarget.transform.position);
             }
+        }
+    }
+
+    public void ChampPassive(int p_champNum)
+    {
+        switch(p_champNum)
+        {
+            case (int)ChampNum.POPPY:
+                // 패시브 공격 목표에 도착 시
+                if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 5f && PSkillCool)
+                {
+                    // 이동 중지
+                    ani.SetInteger("isMove", 0);
+                    agent.speed = 0;
+                    // 적 방향 쳐다보기
+                    transform.forward = attackTarget.transform.position - transform.position;
+
+                    // 어택 모션 끄기
+                    ani.SetInteger("AttackMotion", 0);
+
+                    // 공격 가능 상태 일때
+                    if (attackCheck)
+                    {
+                        moveStop = true;
+                        PSkillCool = false;
+                        ani.SetBool("isPassive", true);
+
+                        if (m_AttackDelayCoroutine != null)
+                        {
+                            StopCoroutine(m_AttackDelayCoroutine);
+                            m_AttackDelayCoroutine = null;
+                        }
+
+                        ani.SetBool("isAttack", true);
+
+                        m_AttackDelayCoroutine = StartCoroutine(AttackDelay());
+
+                        attackCheck = false;
+                    }
+
+                }
+                break;
+            case (int)ChampNum.RENGAR:
+                // 패시브 공격 목표에 도착 시
+                if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 8f && PSkillCool)
+                {
+                    PassiveAttack();
+                }
+                break;
         }
     }
 
@@ -919,5 +937,94 @@ public class ChampController : MonoBehaviour
                 RSkillCool = true;
                 break;
         }
+    }
+
+    private void PassiveAttack()
+    {
+        lastAttackTarget = attackTarget;
+
+        PSkillCool = false;
+        // 이동 중지
+        ani.SetInteger("isMove", 0);
+        moveStop = true;
+        // 적 방향 쳐다보기
+        transform.forward = attackTarget.transform.position - transform.position;
+
+        // 어택 모션 끄기
+        ani.SetInteger("AttackMotion", 0);
+
+        // 공격 가능 상태 일때
+        if (attackCheck)
+        {
+            ani.SetBool("isPassive", true);
+
+            if (m_AttackDelayCoroutine != null)
+            {
+                StopCoroutine(m_AttackDelayCoroutine);
+                m_AttackDelayCoroutine = null;
+            }
+
+            ani.SetBool("isAttack", true);
+
+            m_AttackDelayCoroutine = StartCoroutine(AttackDelay());
+
+            attackCheck = false;
+        }
+
+        if (m_JumpCoroutine != null)
+        {
+            StopCoroutine(m_JumpCoroutine);
+            m_JumpCoroutine = null;
+        }
+        m_JumpCoroutine = StartCoroutine(Jump());
+    }
+
+    Coroutine m_JumpCoroutine = null;
+    IEnumerator Jump()
+    {
+        Vector3 p_mypos = transform.position;
+        Vector3 p_targetpos = attackTarget.transform.position;
+
+        p_targetpos -= (p_targetpos - p_mypos).normalized;
+
+        float i = Vector3.Distance(p_mypos, p_targetpos);
+        float divval = 1 / (i * 0.06f);
+        float t = 0;
+        ani.SetFloat("JumpSpeed", 4f - i * 0.25f);
+
+        while (true)
+        {
+            yield return null;
+            t += divval * Time.deltaTime;
+
+            transform.position = Bezier(p_mypos, p_mypos + new Vector3(0, i * 0.2f, 0) + (transform.forward * i * 0.4f)
+                , p_targetpos + new Vector3(0, i * 0.2f, 0) - (transform.forward * i * 0.4f), p_targetpos, t);
+
+            if (t >= 1)
+            {
+                break;
+            }
+        }
+        ani.SetBool("isPassive", false);
+        ani.speed = 1;
+        moveStop = false;
+
+        m_JumpCoroutine = null;
+    }
+
+    // 베지어곡선
+    private Vector3 Bezier(Vector3 p_1, Vector3 p_2,
+        Vector3 p_3, Vector3 p_4, float p_value)
+    {
+        Vector3 A = Vector3.Lerp(p_1, p_2, p_value);
+        Vector3 B = Vector3.Lerp(p_2, p_3, p_value);
+        Vector3 C = Vector3.Lerp(p_3, p_4, p_value);
+
+        Vector3 D = Vector3.Lerp(A, B, p_value);
+        Vector3 E = Vector3.Lerp(B, C, p_value);
+
+        Vector3 F = Vector3.Lerp(D, E, p_value);
+
+        return F;
     }
 }
