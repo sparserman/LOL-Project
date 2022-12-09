@@ -11,22 +11,27 @@ public class KeyDown : MonoBehaviour
    
     void Update()
     {
-        storePopUp();
+        storePopUpButton();
     }
 
 
-    void storePopUp()
+    void storePopUpButton()
     {
        if(Input.GetKeyDown(KeyCode.I))
+       {
+            StorePopUp();
+       }
+    }
+
+    public void StorePopUp()
+    {
+        if (st.activeSelf == true)
         {
-            if(st.activeSelf == true)
-            {
-                st.SetActive(false);
-            }
-            if(st.activeSelf == false)
-            {
-                st.SetActive(true);
-            }
+            st.SetActive(false);
+        }
+        else if (st.activeSelf == false)
+        {
+            st.SetActive(true);
         }
     }
 }
