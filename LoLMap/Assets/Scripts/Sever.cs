@@ -71,11 +71,6 @@ public class Sever : SingleTonMonobehaviour<Sever>
     Queue<byte[]> s_que = new Queue<byte[]>();
     Queue<byte[]> r_que = new Queue<byte[]>();
 
-
-    public ChampController poppy;
-    public ChampController rengar;
-   
-
     ManualResetEvent s_event;
 
     // Start is called before the first frame update
@@ -438,10 +433,10 @@ public class Sever : SingleTonMonobehaviour<Sever>
                 switch (p.sub)
                 {
                     case Pro.SUB_Poppy:
-                        poppy.inOperation = true;
+                        GameManager.GetInstance.ChampSelect((int)ChampNum.POPPY);
                         break;
                     case Pro.SUB_Rengar:
-                        rengar.inOperation = true;
+                        GameManager.GetInstance.ChampSelect((int)ChampNum.RENGAR);
                         break;
                 }
                 break;
@@ -466,7 +461,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
                         Debug.Log("Pos : " + pos.x + "," + pos.y + "," + pos.z);
 
-                        poppy.SetMovePos(pos);
+                        GameManager.GetInstance.playerList[(int)ChampNum.POPPY].GetComponent<ChampController>().SetMovePos(pos);
                         break;
                 }
                 break;
@@ -490,7 +485,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
                         Debug.Log("Pos : " + pos.x + "," + pos.y + "," + pos.z);
 
-                        rengar.SetMovePos(pos);
+                        GameManager.GetInstance.playerList[(int)ChampNum.RENGAR].GetComponent<ChampController>().SetMovePos(pos);
                         break;
                 }
                 break;

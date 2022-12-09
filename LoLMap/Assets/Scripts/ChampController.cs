@@ -193,7 +193,7 @@ public class ChampController : MonoBehaviour
                         Sever.Instance.MovePack(protocol, hit.point);
 
 
-                        // 패킷으로 위치 전송 hit.point.x, hit.point.y
+                        // 패킷으로 위치 전송 hit.point
                     }
                     else
                     {
