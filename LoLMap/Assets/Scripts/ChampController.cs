@@ -126,10 +126,6 @@ public class ChampController : MonoBehaviour
         // HPBar 생성 및 부여
         hpBar = Instantiate(Resources.Load("Prefabs/" + "HPBar") as GameObject);
         hpBar.transform.parent = GameObject.Find("GUI").transform;
-        if (inOperation)
-        {
-            hpBar.transform.GetChild(1).transform.GetChild(0).GetComponent<Image>().color = Color.green;
-        }
     }
 
     private void Test()
