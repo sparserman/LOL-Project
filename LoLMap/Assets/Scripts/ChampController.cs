@@ -217,6 +217,18 @@ public class ChampController : MonoBehaviour
                     // 목표를 패킷으로 숫자로 치환해서 보내기
                     if (gm.serverConnected)
                     {
+                        int protocol = 0;
+                        switch (champNum)
+                        {
+                            case ChampNum.POPPY:
+                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.ATTACK);
+                                break;
+                            case ChampNum.RENGAR:
+                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.ATTACK);
+                                break;
+                        }
+                        Sever.Instance.AttackPack(protocol, (int)champNum);
+
                         // num 보내기
                     }
                     else

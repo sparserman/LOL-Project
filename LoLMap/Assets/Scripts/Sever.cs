@@ -410,6 +410,22 @@ public class Sever : SingleTonMonobehaviour<Sever>
         Packing(p_protocol, send_buf);
     }
 
+    public void AttackPack(int p_protocol, int p_champnum)
+    {
+        byte[] champnum = BitConverter.GetBytes(p_champnum);
+        
+
+        byte[] send_buf = new byte[sizeof(float) + sizeof(float) + sizeof(float)];
+        int len = 0;
+
+        Array.Copy(champnum, 0, send_buf, len, champnum.Length);
+        len += champnum.Length;
+
+
+
+        Packing(p_protocol, send_buf);
+    }
+
     void UnPacking(byte[] p_buf)
     {
         byte[] pt = new byte[sizeof(int)];
@@ -445,6 +461,14 @@ public class Sever : SingleTonMonobehaviour<Sever>
             case Pro.GAME_Poppy:
                 switch(p.sub)
                 {
+                    case Pro.ATTACK:
+                        Array.Copy(p_buf, len, pt, 0, sizeof(int));        //pt에 시리얼넘버 복사
+                        int champnum = BitConverter.ToInt32(pt);
+                        Debug.Log("Chamnum : " + champnum);
+                        len += sizeof(int);
+
+                        GameManager.GetInstance.playerList[(int)ChampNum.POPPY].GetComponent<ChampController>().SetAttackTarget(champnum);
+                        break;
                     case Pro.MOVE:
                         Vector3 pos;
                         Array.Copy(p_buf, len, pt, 0, sizeof(float));
@@ -469,6 +493,14 @@ public class Sever : SingleTonMonobehaviour<Sever>
             case Pro.GAME_Rengar:
                 switch (p.sub)
                 {
+                    case Pro.ATTACK:
+                        Array.Copy(p_buf, len, pt, 0, sizeof(int));        //pt에 시리얼넘버 복사
+                        int champnum = BitConverter.ToInt32(pt);
+                        Debug.Log("Chamnum : " + champnum);
+                        len += sizeof(int);
+
+                        GameManager.GetInstance.playerList[(int)ChampNum.RENGAR].GetComponent<ChampController>().SetAttackTarget(champnum);
+                        break;
                     case Pro.MOVE:
                         Vector3 pos;
                         Array.Copy(p_buf, len, pt, 0, sizeof(float));
