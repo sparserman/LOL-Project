@@ -12,8 +12,10 @@ public struct ChamState
     public float MPRegen; //마나 재생
     public float Def;   // 방어력
     public float MagDef; // 마법 저항력
-    public float HP;    //체력
+    public float HP;    // 체력
+    public float MaxHP;    // 최대체력
     public float MP;    // 마나
+    public float MaxMP;    // 최대마나
     public float Speed; //이동속도 
     public float AttackRange; //사거리(AttackRange)
     public float SkillAcc; // 스킬 가속(쿨감)(SkillAcceleration)

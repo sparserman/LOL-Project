@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public enum ChampNum
 {
@@ -72,6 +73,11 @@ public class ChampController : MonoBehaviour
     // 조작 가능 여부
     public bool inOperation = false;
 
+    // 체력 바
+    public GameObject hpBar;
+
+    private bool die = false;
+
     void Start()
     {
         gm = GameManager.GetInstance;
@@ -87,29 +93,43 @@ public class ChampController : MonoBehaviour
 
     void Update()
     {
-        if (inOperation)
+        if (!die)
         {
-            Click();
-            QSkill();
-            WSkill();
-            ESkill();
-            RSkill();
+            if (inOperation)
+            {
+                Click();
+                QSkill();
+                WSkill();
+                ESkill();
+                RSkill();
+            }
+            Attack();
+            Stop();
+            Move();
+            HpControl();
+
+            Test();
+
+            // 공속
+            ani.SetFloat("AttackSpeed", 1.5f / state.AttackSpeed);
         }
-        Attack();
-        Stop();
-        Move();
-
-        Test();
-
-        // 공속
-        ani.SetFloat("AttackSpeed", 1.5f / state.AttackSpeed);
     }
 
     private void InitSetting()
     {
+        state.MaxHP = 600;
         state.HP = 600;
         state.Speed = 340;
         state.AttackSpeed = 1.5f;
+        state.Attack = 50;
+
+        // HPBar 생성 및 부여
+        hpBar = Instantiate(Resources.Load("Prefabs/" + "HPBar") as GameObject);
+        hpBar.transform.parent = GameObject.Find("GUI").transform;
+        if (inOperation)
+        {
+            hpBar.transform.GetChild(1).transform.GetChild(0).GetComponent<Image>().color = Color.green;
+        }
     }
 
     private void Test()
@@ -129,6 +149,13 @@ public class ChampController : MonoBehaviour
         {
             clickCheck = true;
         }
+    }
+
+    // HP 지속적으로 변경
+    private void HpControl()
+    {
+        // 체력 변경
+        hpBar.GetComponent<Scrollbar>().size = state.HP / state.MaxHP;
     }
 
     private void Stop()
@@ -314,6 +341,15 @@ public class ChampController : MonoBehaviour
         {
             lastAttackTarget = attackTarget;
 
+            // 상대가 죽었는 지 체크
+            if(attackTarget.GetComponent<ChampController>().die)
+            {
+                // 기본 동작으로 변경
+                attackTarget = null;
+                ani.Play("model|Idle1_Base_model");
+                return;
+            }
+
             // 패시브
             ChampPassive((int)champNum);
 
@@ -429,6 +465,21 @@ public class ChampController : MonoBehaviour
     {
         Aggro();    // 어그로
         hitCheck = true;
+        if (attackTarget.layer.Equals(9))
+        {
+            attackTarget.GetComponent<ChampController>().Damaged(state.Attack);
+        }
+    }
+
+    public void Damaged(float p_damage)
+    {
+        state.HP -= p_damage;
+        if(state.HP < 0)
+        {
+            // 사망
+            die = true;
+            ani.Play("Die");
+        }
     }
 
     public void Aggro()

@@ -10,6 +10,7 @@ TagManager:
   - Red
   - Mob
   - Bule
+  - boots_store
   layers:
   - Default
   - TransparentFX
@@ -20,7 +21,7 @@ TagManager:
   - Map_Ground
   - Wall
   - Mob
-  - 
+  - Champ
   - 
   - 
   - 

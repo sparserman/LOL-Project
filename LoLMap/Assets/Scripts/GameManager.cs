@@ -16,7 +16,17 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            if (playerList[i].GetComponent<ChampController>().hpBar != null)
+            {
+                playerList[i].GetComponent<ChampController>().hpBar.transform.position =
+                    Camera.main.WorldToScreenPoint(new Vector3(
+                        playerList[i].transform.position.x,
+                        playerList[i].transform.position.y + 3,
+                        playerList[i].transform.position.z));
+            }
+        }
     }
 
     public void ChampSelect(int p_champNum)
