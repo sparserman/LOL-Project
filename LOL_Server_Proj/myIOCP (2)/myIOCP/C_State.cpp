@@ -15,11 +15,7 @@ void STATE_INIT::recv_sta()
 		switch (protocol.sub)
 		{
 		case SUB_LOGJOIN_LOGIN:
-			char msg[BUFSIZE];
-			memset(msg, 0, sizeof(msg));
-			client->UnPacking(client->getBuf(), msg);
-
-			printf("%s\n", msg);
+			
 
 
 			Manager_Room::getInstance().RoomEntrance(client);
@@ -77,6 +73,28 @@ void STATE_GAME::recv_sta()
 
 
 			unsigned int pack = Manager_Protocol::getInstance().Packing_prot(GAME_Poppy, SUB_MOVE, 0);
+			Manager_GAME::getInstance().MovePacking(client, pack, x, y, z);
+
+			break;
+
+		}//protocol.sub따라 실행
+		break;
+
+
+	case GAME_Rengar:
+		printf("들어온 프로토콜이 렝가에용\n");
+		switch (protocol.sub)
+		{
+		case SUB_MOVE:
+			float x = 0;
+			float y = 0;
+			float z = 0;
+			Manager_GAME::getInstance().UnPacking(client->getBuf(), x, y, z);
+
+			printf("%f, %f, %f", x, y, z);
+
+
+			unsigned int pack = Manager_Protocol::getInstance().Packing_prot(GAME_Rengar, SUB_MOVE, 0);
 			Manager_GAME::getInstance().MovePacking(client, pack, x, y, z);
 
 			break;

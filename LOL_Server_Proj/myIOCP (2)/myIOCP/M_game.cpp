@@ -49,7 +49,12 @@ void Manager_GAME::MovePacking(Session* p_ptr, unsigned int p_prot, float p_x, f
 
 	buf = temp;
 	// bool값 정해서 밑에 껄로 처리 하기
-	p_ptr->Packet::send_pak(p_prot, buf, datasize);
+	for (int i = 0; i < p_ptr->my_room->count; i++)
+	{
+		p_ptr->my_room->summoner[i]->Packet::send_pak(p_prot, buf, datasize);
+	}
+	
+
 
 
 	delete[] temp;

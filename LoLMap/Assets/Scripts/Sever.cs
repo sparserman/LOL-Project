@@ -73,7 +73,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
 
     public ChampController poppy;
-    public ChampController ganga;
+    public ChampController rengar;
    
 
     ManualResetEvent s_event;
@@ -114,19 +114,12 @@ public class Sever : SingleTonMonobehaviour<Sever>
 
 
 
-        int euckrCodepage = 51949;
-        Encoding EnKr = Encoding.GetEncoding(euckrCodepage);
 
 
 
+        
+        byte[] buf = new byte[0];
 
-        byte[] msg = EnKr.GetBytes("¾È³çÇÏ¼¼¿ë\n");
-        byte[] to_bytes = BitConverter.GetBytes(msg.Length);
-        byte[] buf = new byte[sizeof(int) + msg.Length];
-
-
-        Array.Copy(to_bytes, 0, buf, 0, sizeof(int));
-        Array.Copy(msg, 0, buf, sizeof(int), msg.Length);
         Packing(protocol, buf);
 
         //Recv();
@@ -445,10 +438,10 @@ public class Sever : SingleTonMonobehaviour<Sever>
                 switch (p.sub)
                 {
                     case Pro.SUB_Poppy:
-                        
+                        poppy.inOperation = true;
                         break;
                     case Pro.SUB_Rengar:
-                        
+                        rengar.inOperation = true;
                         break;
                 }
                 break;
@@ -474,6 +467,30 @@ public class Sever : SingleTonMonobehaviour<Sever>
                         Debug.Log("Pos : " + pos.x + "," + pos.y + "," + pos.z);
 
                         poppy.SetMovePos(pos);
+                        break;
+                }
+                break;
+
+            case Pro.GAME_Rengar:
+                switch (p.sub)
+                {
+                    case Pro.MOVE:
+                        Vector3 pos;
+                        Array.Copy(p_buf, len, pt, 0, sizeof(float));
+                        pos.x = BitConverter.ToSingle(pt);
+                        len += sizeof(float);
+
+                        Array.Copy(p_buf, len, pt, 0, sizeof(float));
+                        pos.y = BitConverter.ToSingle(pt);
+                        len += sizeof(float);
+
+                        Array.Copy(p_buf, len, pt, 0, sizeof(float));
+                        pos.z = BitConverter.ToSingle(pt);
+                        len += sizeof(float);
+
+                        Debug.Log("Pos : " + pos.x + "," + pos.y + "," + pos.z);
+
+                        rengar.SetMovePos(pos);
                         break;
                 }
                 break;
