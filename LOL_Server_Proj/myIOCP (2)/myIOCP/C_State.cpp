@@ -56,6 +56,8 @@ void STATE_GAME::recv_sta()
 
 	Protocol protocol;
 	protocol = Manager_Protocol::getInstance().Unpacking_prot(client->getProt());
+	unsigned int pack = 0;
+	int champnum = 0;
 
 	switch (protocol.main)
 	{
@@ -63,20 +65,28 @@ void STATE_GAME::recv_sta()
 		printf("들어온 프로토콜이 뽀삐에용\n");
 		switch (protocol.sub)
 		{
+		case SUB_ATTACK:
+			Manager_GAME::getInstance().AttackUnpacking(client->getBuf(), champnum);
+			
+			pack = Manager_Protocol::getInstance().Packing_prot(GAME_Poppy, SUB_ATTACK, 0);
+			Manager_GAME::getInstance().AttackPacking(client, pack, champnum);
+			break;
+			//서브 프로토콜이 어택이면 실행
+
 		case SUB_MOVE:
 			float x = 0;
 			float y = 0;
 			float z = 0;
-			Manager_GAME::getInstance().UnPacking(client->getBuf(), x, y, z);
+			Manager_GAME::getInstance().MoveUnpacking(client->getBuf(), x, y, z);
 
 			printf("%f, %f, %f", x, y, z);
 
 
-			unsigned int pack = Manager_Protocol::getInstance().Packing_prot(GAME_Poppy, SUB_MOVE, 0);
+			pack = Manager_Protocol::getInstance().Packing_prot(GAME_Poppy, SUB_MOVE, 0);
 			Manager_GAME::getInstance().MovePacking(client, pack, x, y, z);
 
 			break;
-
+			//서브 프로토콜이 무브이면 실행
 		}//protocol.sub따라 실행
 		break;
 
@@ -85,20 +95,27 @@ void STATE_GAME::recv_sta()
 		printf("들어온 프로토콜이 렝가에용\n");
 		switch (protocol.sub)
 		{
+		case SUB_ATTACK:
+			Manager_GAME::getInstance().AttackUnpacking(client->getBuf(), champnum);
+
+			pack = Manager_Protocol::getInstance().Packing_prot(GAME_Rengar, SUB_ATTACK, 0);
+			Manager_GAME::getInstance().AttackPacking(client, pack, champnum);
+			break;
+			//서브 프로토콜이 어택이면 실행
 		case SUB_MOVE:
 			float x = 0;
 			float y = 0;
 			float z = 0;
-			Manager_GAME::getInstance().UnPacking(client->getBuf(), x, y, z);
+			Manager_GAME::getInstance().MoveUnpacking(client->getBuf(), x, y, z);
 
 			printf("%f, %f, %f", x, y, z);
 
 
-			unsigned int pack = Manager_Protocol::getInstance().Packing_prot(GAME_Rengar, SUB_MOVE, 0);
+			pack = Manager_Protocol::getInstance().Packing_prot(GAME_Rengar, SUB_MOVE, 0);
 			Manager_GAME::getInstance().MovePacking(client, pack, x, y, z);
 
 			break;
-
+			//서브 프로토콜이 무브이면 실행
 		}//protocol.sub따라 실행
 		break;
 
