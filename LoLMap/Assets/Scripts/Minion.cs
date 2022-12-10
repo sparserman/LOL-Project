@@ -8,6 +8,14 @@ public class Minion : MonoBehaviour
 {
     GameManager gm;
 
+    public float MaxHP = 300;
+    public float HP = 300;
+    public float ATK = 15;
+
+    public bool die = false;
+
+    public GameObject hpBar;
+
     [SerializeField]
     private GameObject nexus;
 
@@ -37,11 +45,23 @@ public class Minion : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         ani = GetComponent<Animator>();
         gm.allList.Add(gameObject);
+
+        hpBar = Instantiate(Resources.Load("Prefabs/" + "MinionHPBar") as GameObject);
+        hpBar.transform.parent = GameObject.Find("GUI").transform;
     }
 
     void Update()
     {
-        MinionControl();
+        if (!die)
+        {
+            MinionControl();
+            HPBarControl();
+        }
+    }
+
+    private void HPBarControl()
+    {
+        hpBar.transform.GetChild(0).GetComponent<Image>().fillAmount = HP / MaxHP;
     }
 
     private void MinionControl()
@@ -110,5 +130,24 @@ public class Minion : MonoBehaviour
     {
         Debug.Log("미니언 공격");
         attackDelay = true;
+        if(attackTarget.layer.Equals(9))
+        {
+            attackTarget.GetComponent<ChampController>().Damaged(ATK);
+        }
+        else if (attackTarget.layer.Equals(10))
+        {
+            attackTarget.GetComponent<Minion>().Damaged(ATK);
+        }
+    }
+
+    public void Damaged(float p_damage)
+    {
+        HP -= p_damage;
+        if(HP <= 0)
+        {
+            die = true;
+            ani.Play("Die");
+            hpBar.SetActive(false);
+        }
     }
 }

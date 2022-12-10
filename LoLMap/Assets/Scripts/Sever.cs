@@ -102,7 +102,7 @@ public class Sever : SingleTonMonobehaviour<Sever>
         {
             Debug.Log("Connection Failed:" + e.Message);
             // 실패시 서버 연결 안된거라 무조건 뽀삐
-            GameManager.GetInstance.ChampSelect(0);
+            GameManager.GetInstance.ChampSelect((int)ChampNum.POPPY);
         }
 
         int protocol = Manager_Protocol.Instance.Packing_prot(Pro.MAIN_LOGJOIN, Pro.SUB_LOGJOIN_LOGIN);

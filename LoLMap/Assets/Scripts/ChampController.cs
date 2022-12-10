@@ -9,11 +9,18 @@ public enum ChampNum
     POPPY = 0, RENGAR
 }
 
+public enum Team
+{
+    RED = 0, BLUE
+}
+
 public class ChampController : MonoBehaviour
 {
     GameManager gm;
 
     public ChampNum champNum;       // 챔피언 번호
+
+    public Team team;
 
     private Animator ani;
     private ChamState state;        // 챔피언 스탯
@@ -81,7 +88,6 @@ public class ChampController : MonoBehaviour
     void Start()
     {
         gm = GameManager.GetInstance;
-        gm.allList.Add(gameObject);
 
         agent = GetComponent<NavMeshAgent>();
         agent.updateRotation = false;
@@ -121,11 +127,17 @@ public class ChampController : MonoBehaviour
         state.HP = 600;
         state.Speed = 340;
         state.AttackSpeed = 1.5f;
-        state.Attack = 50;
+        state.Attack = 100;
 
         // HPBar 생성 및 부여
         hpBar = Instantiate(Resources.Load("Prefabs/" + "HPBar") as GameObject);
         hpBar.transform.parent = GameObject.Find("GUI").transform;
+
+        if(!gm.serverConnected && inOperation)
+        {
+            GetComponent<ChampController>().hpBar.transform.GetChild(1).
+                transform.GetChild(0).GetComponent<Image>().color = Color.green;
+        }
     }
 
     private void Test()
@@ -227,6 +239,12 @@ public class ChampController : MonoBehaviour
                 // 공격용 위치 찾기
                 if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
                 {
+                    // 자기 자신은 제외
+                    if (hit.transform.name.Equals(transform.name))
+                    {
+                        return;
+                    }
+
                     // 리스트에서 적 찾기
                     int num = -1;
                     for (int i = 0; i < gm.allList.Count; i++)
@@ -318,18 +336,18 @@ public class ChampController : MonoBehaviour
 
         // 목표지 설정
         ChampSetDestination(p_pos);
-        //deInfo = hit.transform;   // 이거 어쩌지
     }
 
-    public void SetAttackTarget(int p_champNum)
+    public void SetAttackTarget(int p_listNum)
     {
         // 목표 설정
         if (!RSkillCheck)
         {
-            attackTarget = gm.allList[p_champNum].gameObject;
+            attackTarget = gm.allList[p_listNum].gameObject;
         }
     }
 
+    private bool attackEnd = false;
     // 공격
     private void Attack()
     {
@@ -337,13 +355,27 @@ public class ChampController : MonoBehaviour
         {
             lastAttackTarget = attackTarget;
 
-            // 상대가 죽었는 지 체크
-            if(attackTarget.GetComponent<ChampController>().die)
+            // 챔프가 죽었는 지 체크
+            if (attackTarget.layer == 9)
             {
-                // 기본 동작으로 변경
-                attackTarget = null;
-                ani.Play("model|Idle1_Base_model");
-                return;
+                if (attackTarget.GetComponent<ChampController>().die)
+                {
+                    // 타겟 제거
+                    attackTarget = null;
+                    attackEnd = true;
+                    return;
+                }
+            }
+            // 미니언이 죽었는 지 체크
+            else if (attackTarget.layer == 10)
+            {
+                if (attackTarget.GetComponent<Minion>().die)
+                {
+                    // 타겟 제거
+                    attackTarget = null;
+                    attackEnd = true;
+                    return;
+                }
             }
 
             // 패시브
@@ -405,6 +437,14 @@ public class ChampController : MonoBehaviour
                 ChampSetDestination(attackTarget.transform.position);
             }
         }
+        else
+        {
+            if(attackEnd && attackCheck)
+            {
+                attackEnd = false;
+                ani.SetBool("isAttack", false);
+            }
+        }
     }
 
     public void ChampPassive(int p_champNum)
@@ -459,22 +499,30 @@ public class ChampController : MonoBehaviour
     // 공격 성공
     public void AttackEvent()
     {
-        Aggro();    // 어그로
-        hitCheck = true;
-        if (attackTarget.layer.Equals(9))
+        if (attackTarget != null)
         {
-            attackTarget.GetComponent<ChampController>().Damaged(state.Attack);
+            Aggro();    // 어그로
+            hitCheck = true;
+            if (attackTarget.layer.Equals(9))
+            {
+                attackTarget.GetComponent<ChampController>().Damaged(state.Attack);
+            }
+            else if (attackTarget.layer.Equals(10))
+            {
+                attackTarget.GetComponent<Minion>().Damaged(state.Attack);
+            }
         }
     }
 
     public void Damaged(float p_damage)
     {
         state.HP -= p_damage;
-        if(state.HP < 0)
+        if(state.HP <= 0)
         {
             // 사망
             die = true;
             ani.Play("Die");
+            hpBar.SetActive(false);
         }
     }
 
