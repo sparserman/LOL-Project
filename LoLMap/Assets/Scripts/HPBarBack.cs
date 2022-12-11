@@ -11,7 +11,7 @@ public class HPBarBack : MonoBehaviour
     {
         if(transform.GetComponent<Scrollbar>().size >= hp.GetComponent<Scrollbar>().size)
         {
-            transform.GetComponent<Scrollbar>().size -= 0.01f;
+            transform.GetComponent<Scrollbar>().size -= 0.005f;
         }
         else if (transform.GetComponent<Scrollbar>().size < hp.GetComponent<Scrollbar>().size)
         {

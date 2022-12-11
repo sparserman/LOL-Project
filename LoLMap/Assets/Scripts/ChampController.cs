@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -22,11 +24,11 @@ public class ChampController : MonoBehaviour
 
     public Team team;
 
-    private Animator ani;
+    public Animator ani;
     private ChamState state;        // 챔피언 스탯
-    private NavMeshAgent agent;
+    public NavMeshAgent agent;
 
-    private Vector3 destination;    // 목적지 좌표
+    public Vector3 destination;    // 목적지 좌표
 
     private bool clickCheck = true;        // 꾹 누를때 천천히 반복하기 위함
     private float clickTime = 0;            // 클릭 딜레이
@@ -46,12 +48,12 @@ public class ChampController : MonoBehaviour
     private float RSkillTime = 0;           // R 스킬 차지 시간
 
     [SerializeField]
-    private bool PSkillCool = true;           // 패시브 사용 가능 상태
+    public bool PSkillCool = true;           // 패시브 사용 가능 상태
 
-    private bool QSkillCool = true;          // Q 스킬 사용 가능 상태 (쿨타임)
-    private bool WSkillCool = true;          // W 스킬 사용 가능 상태 (쿨타임)
-    private bool ESkillCool = true;          // E 스킬 사용 가능 상태 (쿨타임)
-    private bool RSkillCool = true;          // R 스킬 사용 가능 상태 (쿨타임)
+    public bool QSkillCool = true;          // Q 스킬 사용 가능 상태 (쿨타임)
+    public bool WSkillCool = true;          // W 스킬 사용 가능 상태 (쿨타임)
+    public bool ESkillCool = true;          // E 스킬 사용 가능 상태 (쿨타임)
+    public bool RSkillCool = true;          // R 스킬 사용 가능 상태 (쿨타임)
 
     public GameObject shield;
 
@@ -65,8 +67,7 @@ public class ChampController : MonoBehaviour
 
     public float deltaRotation;     // 회전 속도
 
-    [SerializeField]
-    private bool moveStop = false;      // 이동 중지
+    public bool moveStop = false;      // 이동 중지
 
     public bool hide = false;      // 은신 상태
 
@@ -84,6 +85,8 @@ public class ChampController : MonoBehaviour
     public GameObject hpBar;
 
     private bool die = false;
+
+    private Poppy poppy;
 
     void Start()
     {
@@ -137,6 +140,13 @@ public class ChampController : MonoBehaviour
         {
             GetComponent<ChampController>().hpBar.transform.GetChild(1).
                 transform.GetChild(0).GetComponent<Image>().color = Color.green;
+            GetComponent<ChampController>().hpBar.transform.GetChild(0).
+               transform.GetChild(0).transform.GetChild(0).GetComponent<Image>().color = Color.red;
+        }
+
+        if(champNum == ChampNum.POPPY)
+        {
+            poppy = gameObject.AddComponent<Poppy>();
         }
     }
 
@@ -168,7 +178,7 @@ public class ChampController : MonoBehaviour
 
     private void Stop()
     {
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKeyDown(KeyCode.S) || die)
         {
             // 공격 중지
             ani.SetBool("isAttack", false);
@@ -276,6 +286,16 @@ public class ChampController : MonoBehaviour
                     {
                         SetAttackTarget(num);
                     }
+                }
+            }
+            if (Input.GetMouseButton(1) && moveStop)
+            {
+                lastAttackTarget = null;
+                ani.SetInteger("isMove", 2);
+                RaycastHit hit;
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
+                {
+                    agent.SetDestination(hit.point);
                 }
             }
         }
@@ -523,6 +543,8 @@ public class ChampController : MonoBehaviour
             die = true;
             ani.Play("Die");
             hpBar.SetActive(false);
+            // 정지
+            Stop();
         }
     }
 
@@ -620,40 +642,18 @@ public class ChampController : MonoBehaviour
     // Q 스킬 실행하기
     public void QSkillPlay(Vector3 p_pos)
     {
-        SetDir(p_pos);
-
-        moveStop = true;
-        ani.SetBool("isQSkill", true);
-        ani.SetInteger("isMove", 0);
-        ani.SetInteger("AttackMotion", 0);
-        ani.SetBool("isAttack", false);
-        //attackTarget = null;
-        agent.speed = 0;
-        QSkillCool = false;
-
-        // 플레이어 방향
-        transform.forward = destination;
-
-        StartCoroutine(SkillCooltime(1));
+        switch(champNum)
+        {
+            case (int)ChampNum.POPPY:
+                poppy.QSkill(p_pos);
+                break;
+        }
     }
 
     // Q 스킬 이펙트 생성
     public void QSkillEvent(int num)
     {
-        switch (num)
-        {
-            case 0:
-                GameObject cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyQEffectPos") as GameObject);
-                cpyObj.transform.position = transform.position;
-                cpyObj.transform.forward = new Vector3(destination.x, -180, destination.z);
-                // 1.5초뒤 삭제
-                Destroy(cpyObj, 1.5f);
-                break;
-            case 1:
-                ani.SetBool("isQSkill", false);
-                moveStop = false;
-                break;
-        }
+        poppy.QSkillEffect(num);
     }
 
     // W 스킬
@@ -1010,7 +1010,7 @@ public class ChampController : MonoBehaviour
     }
 
     // 목적지만 설정 (방향만 바꾸기 위함)
-    private void SetDir(Vector3 dir)
+    public void SetDir(Vector3 dir)
     {
         destination = dir - transform.position;
     }
