@@ -1361,10 +1361,10 @@ GameObject:
   - component: {fileID: 5090374912051414708}
   - component: {fileID: 5090374912051414711}
   - component: {fileID: 5090374912051414710}
-  - component: {fileID: 5090374912051414713}
-  m_Layer: 0
+  - component: {fileID: 1217666576}
+  m_Layer: 9
   m_Name: Rengar
-  m_TagString: Bule
+  m_TagString: Red
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1400,7 +1400,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 112
+  m_Constraints: 126
   m_CollisionDetection: 0
 --- !u!136 &5090374912051414708
 CapsuleCollider:
@@ -1458,7 +1458,7 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!114 &5090374912051414713
+--- !u!114 &1217666576
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1467,32 +1467,41 @@ MonoBehaviour:
   m_GameObject: {fileID: 5090374912051414712}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9be92e74552aee446b8900ac41d92f64, type: 3}
+  m_Script: {fileID: 11500000, guid: 3132d56c541e80046ba5ea51590ef385, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cam: {fileID: 0}
+  champNum: 1
+  team: 1
+  ani: {fileID: 0}
+  agent: {fileID: 0}
+  destination: {x: 0, y: 0, z: 0}
   attackTarget: {fileID: 0}
-  QSkillObj: {fileID: 5090374912634166558}
-  WSkillObj: {fileID: 0}
-  ESkillObj: {fileID: 0}
-  attackCheck: 1
+  eSkillTarget: {fileID: 0}
   PSkillCool: 0
-  layerMask:
+  QSkillCool: 1
+  WSkillCool: 1
+  ESkillCool: 1
+  RSkillCool: 1
+  shield: {fileID: 0}
+  wallMask:
     serializedVersion: 2
     m_Bits: 128
   enemyMask:
     serializedVersion: 2
-    m_Bits: 256
-  MapMask:
+    m_Bits: 1536
+  mapMask:
     serializedVersion: 2
-    m_Bits: 192
-  deltaRotation: 10
+    m_Bits: 64
+  deltaRotation: 1000
   moveStop: 0
+  hide: 0
   PCoolTime: 0
-  QCoolTime: 2
-  WCoolTime: 2
-  ECoolTime: 2
-  RCoolTime: 2
+  QCoolTime: 0
+  WCoolTime: 0
+  ECoolTime: 0
+  RCoolTime: 0
+  inOperation: 0
+  hpBar: {fileID: 0}
 --- !u!1 &5090374912084830105
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -5,16 +6,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
-
-public enum ChampNum
-{
-    POPPY = 0, RENGAR
-}
-
-public enum Team
-{
-    RED = 0, BLUE
-}
 
 public class ChampController : MonoBehaviour
 {
@@ -25,7 +16,7 @@ public class ChampController : MonoBehaviour
     public Team team;
 
     public Animator ani;
-    private ChamState state;        // 챔피언 스탯
+    public ChamState state;        // 챔피언 스탯
     public NavMeshAgent agent;
 
     public Vector3 destination;    // 목적지 좌표
@@ -38,7 +29,7 @@ public class ChampController : MonoBehaviour
     private GameObject lastAttackTarget;    // 가장 최근 공격목표
 
     private int attackCount = 0;     // 공격 모션 번호
-    private bool attackCheck = true;     // 공격 장전 상태
+    public bool attackCheck = true;     // 공격 장전 상태
     private bool hitCheck = false;      // 공격 되었는지 체크
 
     [SerializeField]
@@ -84,9 +75,11 @@ public class ChampController : MonoBehaviour
     // 체력 바
     public GameObject hpBar;
 
-    private bool die = false;
+    public bool die = false;
 
     private Poppy poppy;
+
+    public float dieTime = 5f;
 
     void Start()
     {
@@ -131,18 +124,11 @@ public class ChampController : MonoBehaviour
         state.Speed = 340;
         state.AttackSpeed = 1.5f;
         state.Attack = 100;
+        state.AttackRange = 1;
 
         // HPBar 생성 및 부여
         hpBar = Instantiate(Resources.Load("Prefabs/" + "HPBar") as GameObject);
         hpBar.transform.parent = GameObject.Find("GUI").transform;
-
-        if(!gm.serverConnected && inOperation)
-        {
-            GetComponent<ChampController>().hpBar.transform.GetChild(1).
-                transform.GetChild(0).GetComponent<Image>().color = Color.green;
-            GetComponent<ChampController>().hpBar.transform.GetChild(0).
-               transform.GetChild(0).transform.GetChild(0).GetComponent<Image>().color = Color.red;
-        }
 
         if(champNum == ChampNum.POPPY)
         {
@@ -219,42 +205,30 @@ public class ChampController : MonoBehaviour
             {
                 // 클릭 확인
                 clickCheck = false;
-                // 마우스 이동용 위치 찾기
+
                 RaycastHit hit;
-                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
-                {
-                    if(gm.serverConnected)
-                    {
-                        int protocol = 0;
-                        switch (champNum)
-                        {
-                            case ChampNum.POPPY:
-                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.MOVE);
-                                break;
-                            case ChampNum.RENGAR:
-                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.MOVE);
-                                break;
-                        }
-                        Sever.Instance.MovePack(protocol, hit.point);
-
-
-                        // 패킷으로 위치 전송 hit.point
-                    }
-                    else
-                    {
-                        SetMovePos(hit.point);
-                    }
-                }
 
                 // 공격용 위치 찾기
                 if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
                 {
-                    // 자기 자신은 제외
-                    if (hit.transform.name.Equals(transform.name))
+                    // 팀은 제외
+                    // 챔피언
+                    if (hit.transform.gameObject.layer.Equals(9))
                     {
-                        return;
+                        if (hit.transform.gameObject.GetComponent<ChampController>().team == team)
+                        {
+                            return;
+                        }
                     }
-
+                    // 미니언
+                    else if (hit.transform.gameObject.layer.Equals(10))
+                    {
+                        if (hit.transform.gameObject.GetComponent<Minion>().team == team)
+                        {
+                            return;
+                        }
+                    }
+                    
                     // 리스트에서 적 찾기
                     int num = -1;
                     for (int i = 0; i < gm.allList.Count; i++)
@@ -278,13 +252,38 @@ public class ChampController : MonoBehaviour
                                 protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.ATTACK);
                                 break;
                         }
-                        Sever.Instance.AttackPack(protocol, (int)champNum);
+                        Sever.Instance.AttackPack(protocol, num);
 
                         // num 보내기
                     }
                     else
                     {
                         SetAttackTarget(num);
+                    }
+                }
+                // 이동용 위치 찾기
+                else if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
+                {
+                    if(gm.serverConnected)
+                    {
+                        int protocol = 0;
+                        switch (champNum)
+                        {
+                            case ChampNum.POPPY:
+                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.MOVE);
+                                break;
+                            case ChampNum.RENGAR:
+                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.MOVE);
+                                break;
+                        }
+                        Sever.Instance.MovePack(protocol, hit.point);
+
+
+                        // 패킷으로 위치 전송 hit.point
+                    }
+                    else
+                    {
+                        SetMovePos(hit.point);
                     }
                 }
             }
@@ -376,7 +375,7 @@ public class ChampController : MonoBehaviour
             lastAttackTarget = attackTarget;
 
             // 챔프가 죽었는 지 체크
-            if (attackTarget.layer == 9)
+            if (attackTarget.layer.Equals(9))
             {
                 if (attackTarget.GetComponent<ChampController>().die)
                 {
@@ -387,7 +386,7 @@ public class ChampController : MonoBehaviour
                 }
             }
             // 미니언이 죽었는 지 체크
-            else if (attackTarget.layer == 10)
+            else if (attackTarget.layer.Equals(10))
             {
                 if (attackTarget.GetComponent<Minion>().die)
                 {
@@ -398,8 +397,8 @@ public class ChampController : MonoBehaviour
                 }
             }
 
-            // 패시브
-            ChampPassive((int)champNum);
+            // 패시브 공격
+            ChampPassive();
 
             // 기본 공격 목표에 도착 시
             if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 2.5f && !PSkillCool)
@@ -467,46 +466,15 @@ public class ChampController : MonoBehaviour
         }
     }
 
-    public void ChampPassive(int p_champNum)
+    // 패시브 스킬
+    public void ChampPassive()
     {
-        switch(p_champNum)
+        switch(champNum)
         {
-            case (int)ChampNum.POPPY:
-                // 패시브 공격 목표에 도착 시
-                if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 5f && PSkillCool)
-                {
-                    // 이동 중지
-                    ani.SetInteger("isMove", 0);
-                    agent.speed = 0;
-                    // 적 방향 쳐다보기
-                    transform.forward = attackTarget.transform.position - transform.position;
-
-                    // 어택 모션 끄기
-                    ani.SetInteger("AttackMotion", 0);
-
-                    // 공격 가능 상태 일때
-                    if (attackCheck)
-                    {
-                        moveStop = true;
-                        PSkillCool = false;
-                        ani.SetBool("isPassive", true);
-
-                        if (m_AttackDelayCoroutine != null)
-                        {
-                            StopCoroutine(m_AttackDelayCoroutine);
-                            m_AttackDelayCoroutine = null;
-                        }
-
-                        ani.SetBool("isAttack", true);
-
-                        m_AttackDelayCoroutine = StartCoroutine(AttackDelay());
-
-                        attackCheck = false;
-                    }
-
-                }
+            case ChampNum.POPPY:
+                poppy.PassiveAttack();
                 break;
-            case (int)ChampNum.RENGAR:
+            case ChampNum.RENGAR:
                 // 패시브 공격 목표에 도착 시
                 if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 8f && PSkillCool)
                 {
@@ -526,6 +494,7 @@ public class ChampController : MonoBehaviour
             if (attackTarget.layer.Equals(9))
             {
                 attackTarget.GetComponent<ChampController>().Damaged(state.Attack);
+                minionAggro();
             }
             else if (attackTarget.layer.Equals(10))
             {
@@ -534,10 +503,48 @@ public class ChampController : MonoBehaviour
         }
     }
 
+    // 상대 미니언의 어그로를 전부 때린 상대로
+    public void minionAggro()
+    {
+        for (int i = 0; i < gm.allList.Count; i++)
+        {
+            if (Vector3.Distance(gm.allList[i].transform.position, transform.position) <= 5f)
+            {
+                if (gm.allList[i].transform.name != transform.name)
+                {
+                    if (gm.allList[i].layer.Equals(10))
+                    {
+                        if (team != gm.allList[i].GetComponent<Minion>().team)
+                        {
+                            if (!gm.allList[i].GetComponent<Minion>().aggro)
+                            {
+                                // 타겟을 자신으로 변경
+                                gm.allList[i].GetComponent<Minion>().attackTarget = gameObject;
+                                gm.allList[i].GetComponent<Minion>().aggro = true;
+
+                                // 미니언 스크립트에서 코루틴 돌리기
+                                gm.allList[i].GetComponent<Minion>().StartCoroutine(AggroRelease(gm.allList[i].GetComponent<Minion>()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    IEnumerator AggroRelease(Minion p_obj)
+    {
+        yield return new WaitForSeconds(2f);
+
+        p_obj.aggro = false;
+    }
+
+
     public void Damaged(float p_damage)
     {
         state.HP -= p_damage;
-        if(state.HP <= 0)
+
+        if (state.HP <= 0 && !die)
         {
             // 사망
             die = true;
@@ -545,43 +552,73 @@ public class ChampController : MonoBehaviour
             hpBar.SetActive(false);
             // 정지
             Stop();
+            GetComponent<Collider>().enabled = false;
+            GetComponent<NavMeshAgent>().enabled = false;
+            StartCoroutine(ResurrectionCorouine());
         }
+    }
+
+    IEnumerator ResurrectionCorouine()
+    {
+        yield return new WaitForSeconds(dieTime);
+        Resurrection();
+    }
+
+    // 부활
+    public void Resurrection()
+    {
+        // 위치도 넣어야함
+
+        // 스탯 초기화
+        state.HP = state.MaxHP;
+        state.MP = state.MaxMP;
+
+        // 정보 수정
+        die = false;
+        GetComponent<Collider>().enabled = true;
+        GetComponent<NavMeshAgent>().enabled = true;
+        hpBar.SetActive(true);
+
+        ani.Play("Idle");
     }
 
     public void Aggro()
     {
         // 어그로 끌기
-        if (lastAttackTarget.tag == "Mob")
+        if (lastAttackTarget != null)
         {
-            Mob mob = lastAttackTarget.GetComponent<Mob>();
-            if (mob.attackTarget == null)
+            if (lastAttackTarget.tag == "Mob")
             {
-                mob.attackTarget = gameObject;
-                mob.HitCheck();
+                Mob mob = lastAttackTarget.GetComponent<Mob>();
+                if (mob.attackTarget == null)
+                {
+                    mob.attackTarget = gameObject;
+                    mob.HitCheck();
+                }
             }
-        }
-        else if (lastAttackTarget.name == "Baron")
-        {
-            Baron baron = lastAttackTarget.GetComponent<Baron>();
-            if (baron.attackTarget == null)
+            else if (lastAttackTarget.name == "Baron")
             {
-                baron.attackTarget = gameObject;
+                Baron baron = lastAttackTarget.GetComponent<Baron>();
+                if (baron.attackTarget == null)
+                {
+                    baron.attackTarget = gameObject;
+                }
             }
-        }
-        else if (lastAttackTarget.tag == "Dragon")
-        {
-            Dragon mob = lastAttackTarget.GetComponent<Dragon>();
-            if (mob.attackTarget == null)
+            else if (lastAttackTarget.tag == "Dragon")
             {
-                mob.attackTarget = gameObject;
-                mob.HitCheck();
+                Dragon mob = lastAttackTarget.GetComponent<Dragon>();
+                if (mob.attackTarget == null)
+                {
+                    mob.attackTarget = gameObject;
+                    mob.HitCheck();
+                }
             }
         }
     }
 
     // 공격 딜레이 (공격속도)
-    Coroutine m_AttackDelayCoroutine = null;
-    IEnumerator AttackDelay()
+    public Coroutine m_AttackDelayCoroutine = null;
+    public IEnumerator AttackDelay()
     {
         yield return new WaitForSeconds(state.AttackSpeed);
         if (!attackCheck)
@@ -596,24 +633,13 @@ public class ChampController : MonoBehaviour
     // 패시브
     public void PassiveEvent(int num)
     {
-        switch (num)
+        switch(champNum)
         {
-            case 0:
-                GameObject cpyObj;
-                cpyObj = Instantiate<GameObject>(Resources.Load("Prefabs/" + "PoppyPassiveEffect") as GameObject
-                    , new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), Quaternion.identity);
-                cpyObj.transform.forward = attackTarget.transform.position;
-                cpyObj.transform.rotation = new Quaternion(0, 0, 0, 90);
-                cpyObj.gameObject.SetActive(true);
-                cpyObj.GetComponent<PoppyPassiveSkill>().Init(attackTarget, this);
-                // 방패 제거
-                shield.SetActive(false);
+            case ChampNum.POPPY:
+                poppy.PassiveEffect(num);
                 break;
-            case 1:
-                ani.SetBool("isPassive", false);
-                moveStop = false;
+            case ChampNum.RENGAR:
 
-                StartCoroutine(SkillCooltime(0));
                 break;
         }
     }
@@ -653,7 +679,15 @@ public class ChampController : MonoBehaviour
     // Q 스킬 이펙트 생성
     public void QSkillEvent(int num)
     {
-        poppy.QSkillEffect(num);
+        switch (champNum)
+        {
+            case ChampNum.POPPY:
+                poppy.QSkillEffect(num);
+                break;
+            case ChampNum.RENGAR:
+
+                break;
+        }
     }
 
     // W 스킬
@@ -661,51 +695,21 @@ public class ChampController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.W) && !moveStop && WSkillCool)
         {
-            WSkillCool = false;
-            Debug.Log("W");
-            GameObject cpyObj;
-            cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyWEffect") as GameObject
-                , transform.position, Quaternion.identity);
-            cpyObj.transform.forward = new Vector3(0, 90, 0);
-
-            if (m_WSkillEffectCoroutine != null)
-            {
-                StopCoroutine(m_WSkillEffectCoroutine);
-                m_WSkillEffectCoroutine = null;
-            }
-            m_WSkillEffectCoroutine = StartCoroutine(WSkillEffect(cpyObj));
-
-            StartCoroutine(SkillCooltime(2));
+            WSkillPlay();
         }
     }
 
-    // W 스킬 지속
-    Coroutine m_WSkillEffectCoroutine = null;
-    IEnumerator WSkillEffect(GameObject obj)
+    private void WSkillPlay()
     {
-        ani.SetBool("isWSkill", true);
-        state.Speed += 300;
-        float t = 0;
-        while (true)
+        switch (champNum)
         {
-            yield return null;
-            t += Time.deltaTime;
-
-            if (t > 0.5f)
-            {
-                ani.SetBool("isWSkill", false);
-            }
-
-            obj.transform.position = transform.position;
-            if (t >= 2)
-            {
+            case ChampNum.POPPY:
+                poppy.WSkill();
                 break;
-            }
-        }
-        state.Speed -= 300;
-        Destroy(obj);
+            case ChampNum.RENGAR:
 
-        m_WSkillEffectCoroutine = null;
+                break;
+        }
     }
 
     // E 스킬

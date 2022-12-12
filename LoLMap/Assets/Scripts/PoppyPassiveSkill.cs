@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PoppyPassiveSkill : MonoBehaviour
 {
 
-    protected GameObject target;
-    protected ChampController Champ;
+    public GameObject target;       // 타겟
+    public ChampController champ;   // 사용자
 
     private bool hit = false;   // 공격 됐는지
     private bool end = false;   // 도착 했는지
@@ -19,19 +20,13 @@ public class PoppyPassiveSkill : MonoBehaviour
 
     public float num = 0;
 
-    
+    public float power = 100;
+
+    private bool dieCheck = false;
 
     private void Start()
     {
         startTime = Time.time;
-    }
-
-    public void Init( GameObject p_target, ChampController p_poppy )
-    {
-        Champ = p_poppy;
-        target = p_target;
-
-        target = Champ.attackTarget;
     }
 
     void Update()
@@ -53,44 +48,92 @@ public class PoppyPassiveSkill : MonoBehaviour
 
     private void Attack()
     {
-        if(Vector3.Distance(transform.position, target.transform.position) < 0.1f && !hit)
+        if (!hit)
         {
-            // 히트
-            Champ.Aggro();
-
-            hit = true;
-            // 중간 지점
-            droppos = (target.transform.position + Champ.transform.position) * 0.5f;
-            droppos.y = transform.position.y + 0.5f;
-
-            Debug.DrawLine((target.transform.position + Champ.transform.position) * 0.5f
-                , droppos + transform.right * 5f, Color.green, 3f);
-
-            // 벽 체크
-            if(Physics.Raycast((target.transform.position + Champ.transform.position) * 0.5f
-                , transform.right, 5f))
+            if (Vector3.Distance(transform.position, target.transform.position) < 0.1f)
             {
-                Debug.Log("오른쪽 벽 있음");
-                droppos -= transform.right * 3;
-            }
-            else
-            {
-                Debug.Log("없음");
-                droppos += transform.right * 3;
+                // 히트
+                champ.Aggro();
+                if (target.layer.Equals(9))
+                {
+                    target.GetComponent<ChampController>().Damaged(power);
+                }
+                else
+                {
+                    target.GetComponent<Minion>().Damaged(power);
+                }
+
+                hit = true;
+                // 중간 지점
+                droppos = (target.transform.position + champ.transform.position) * 0.5f;
+                droppos.y = transform.position.y + 0.5f;
+
+                Debug.DrawLine((target.transform.position + champ.transform.position) * 0.5f
+                    , droppos + transform.right * 5f, Color.green, 3f);
+
+                // 벽 체크
+                if (Physics.Raycast((target.transform.position + champ.transform.position) * 0.5f
+                    , transform.right, 5f))
+                {
+                    Debug.Log("오른쪽 벽 있음");
+                    droppos -= transform.right * 3;
+                }
+                else
+                {
+                    Debug.Log("없음");
+                    droppos += transform.right * 3;
+                }
             }
         }
     }
 
+    private bool hitCheck = false;
     private void Drop()
     {
-        if(hit && !end)
+        if (hit && !end)
         {
-            SlerpFn(transform.position, droppos, 60f);
-            transform.Rotate(0, 0, Time.deltaTime * num);
-            if(Vector3.Distance(transform.position, droppos) < 0.2f)
+            if (!hitCheck)
             {
-                end = true;
-                transform.position = droppos;
+                hitCheck = true;
+                if (target.layer.Equals(9))
+                {
+                    if (target.GetComponent<ChampController>().die)
+                    {
+                        dieCheck = true;
+                    }
+                }
+                else if (target.layer.Equals(10))
+                {
+                    if(target.GetComponent<Minion>().die)
+                    {
+                        dieCheck = true;
+                    }
+                }
+            }
+            // 죽으면 바로 자기에게 날아오기 아니면 바닥으로
+            if (dieCheck)
+            {
+                transform.position +=
+                    (new Vector3(champ.transform.position.x,
+                    champ.transform.position.y + 1,
+                    champ.transform.position.z) - transform.position).normalized * Time.deltaTime * 25f;
+
+                if (Vector3.Distance(transform.position, new Vector3(champ.transform.position.x,
+                    champ.transform.position.y + 1,
+                    champ.transform.position.z)) < 0.2f)
+                {
+                    CreateShield();
+                }
+            }
+            else
+            {
+                SlerpFn(transform.position, droppos, 60f);
+                transform.Rotate(0, 0, Time.deltaTime * num);
+                if (Vector3.Distance(transform.position, droppos) < 0.2f)
+                {
+                    end = true;
+                    transform.position = droppos;
+                }
             }
         }
 
@@ -123,20 +166,27 @@ public class PoppyPassiveSkill : MonoBehaviour
     {
         if(end)
         {
-            Debug.Log("방패 습득!");
-            if(other.name == "PoppyServer")
+            if(other.gameObject == champ.gameObject)
             {
-                GameObject cpyObj;
-                cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyPassiveShield") as GameObject
-                    , Champ.transform.position, Quaternion.identity);
-                cpyObj.SetActive(true);
-
-                Destroy(gameObject);
+                CreateShield();
             }
-            else if(other.tag == "Blue")
+            else if(other.gameObject.layer.Equals(9))
             {
-                Destroy(gameObject);
+                if (other.GetComponent<ChampController>().team != champ.team)
+                {
+                    Destroy(gameObject);
+                }
             }
         }
+    }
+
+    private void CreateShield()
+    {
+        GameObject cpyObj;
+        cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyPassiveShield") as GameObject
+            , champ.transform.position, Quaternion.identity);
+        cpyObj.SetActive(true);
+
+        Destroy(gameObject);
     }
 }

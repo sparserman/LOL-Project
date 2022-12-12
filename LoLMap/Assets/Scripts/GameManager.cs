@@ -3,12 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum ChampNum
+{
+    POPPY = 0, RENGAR
+}
+
+public enum Team
+{
+    RED = 0, BLUE
+}
+
 public class GameManager : MonoBehaviour
 {
     public List<GameObject> allList;
     public List<GameObject> playerList;
 
     public bool serverConnected = false;
+
+    public GameObject redNexus;
+    public GameObject blueNexus;
 
     void Start()
     {
@@ -58,11 +71,13 @@ public class GameManager : MonoBehaviour
         playerList[p_champNum].GetComponent<ChampController>().inOperation = true;
 
         // 자기 체력 바 색 변경
-        if (serverConnected)
-        {
-            playerList[p_champNum].GetComponent<ChampController>().hpBar.transform.GetChild(1).
+        playerList[p_champNum].GetComponent<ChampController>().
+            GetComponent<ChampController>().hpBar.transform.GetChild(1).
                 transform.GetChild(0).GetComponent<Image>().color = Color.green;
-        }
+        playerList[p_champNum].GetComponent<ChampController>().
+            GetComponent<ChampController>().hpBar.transform.GetChild(0).
+           transform.GetChild(0).transform.GetChild(0).GetComponent<Image>().color = Color.red;
+
     }
 
 
