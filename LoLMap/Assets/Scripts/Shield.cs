@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class Shield : MonoBehaviour
 {
+    public ChampController champ;
+    public float shieldHP = 0;
+
     private void Start()
     {
-        Destroy(gameObject, 5f);
+        Destroy(gameObject, 3f);
     }
 
     void Update()
@@ -22,5 +25,17 @@ public class Shield : MonoBehaviour
         temppos.y = GameManager.GetInstance.playerList[0].transform.position.y + 1;
 
         transform.position = temppos;
+    }
+
+    private void OnDestroy()
+    {
+        if(champ.shieldHP > shieldHP)
+        {
+            champ.shieldHP = -shieldHP;
+        }
+        else
+        {
+            champ.shieldHP = 0;
+        }
     }
 }

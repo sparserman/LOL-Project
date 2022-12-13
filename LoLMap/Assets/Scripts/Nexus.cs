@@ -41,6 +41,10 @@ public class Nexus : MonoBehaviour
         // 미니언 생성
         GameObject obj = Instantiate(Resources.Load("Prefabs/" + "BlueWarrierMinion") as GameObject);
         obj.transform.position = transform.position;
+        if(team == Team.BLUE)
+        {
+            obj.transform.position = new Vector3(-18.77f, 5.74f, -44.57f);
+        }
 
         // 미니언 설정
         obj.GetComponent<Minion>().MaxHP += count * 10;

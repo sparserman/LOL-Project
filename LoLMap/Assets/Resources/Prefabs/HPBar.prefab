@@ -572,3 +572,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hp: {fileID: 7379003708638198766}
+  shield: 0

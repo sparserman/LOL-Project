@@ -215,6 +215,7 @@ public class Minion : MonoBehaviour
     {
         gm.allList.Remove(gameObject);
         Destroy(gameObject);
+        Destroy(hpBar.gameObject);
     }
 
 

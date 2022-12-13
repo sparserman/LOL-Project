@@ -7,6 +7,12 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 
+public enum CC
+{
+    RESTRICTION = 0, STUN, SLOW, STOP
+}
+// STOP은 뽀삐 벽
+
 public class ChampController : MonoBehaviour
 {
     GameManager gm;
@@ -75,11 +81,14 @@ public class ChampController : MonoBehaviour
     // 체력 바
     public GameObject hpBar;
 
-    public bool die = false;
+    public bool die = false;        // 죽었는 지 체크
+    public List<CC> cc;        // CC기 걸렸는 지 체크
+    public float shieldHP = 100;        // 보호막 크기
 
+    // 챔피언 스킬
     private Poppy poppy;
 
-    public float dieTime = 5f;
+    public float dieTime = 5f;      // 부활 시간
 
     void Start()
     {
@@ -123,14 +132,15 @@ public class ChampController : MonoBehaviour
         state.HP = 600;
         state.Speed = 340;
         state.AttackSpeed = 1.5f;
-        state.Attack = 100;
-        state.AttackRange = 1;
+        state.Attack = 70;
+        state.AttackRange = 2.5f;
 
         // HPBar 생성 및 부여
         hpBar = Instantiate(Resources.Load("Prefabs/" + "HPBar") as GameObject);
         hpBar.transform.parent = GameObject.Find("GUI").transform;
+        hpBar.transform.GetChild(0).GetComponent<HPBarBack>().champ = this;
 
-        if(champNum == ChampNum.POPPY)
+        if (champNum == ChampNum.POPPY)
         {
             poppy = gameObject.AddComponent<Poppy>();
         }
@@ -159,7 +169,31 @@ public class ChampController : MonoBehaviour
     private void HpControl()
     {
         // 체력 변경
-        hpBar.GetComponent<Scrollbar>().size = state.HP / state.MaxHP;
+        if((state.HP + shieldHP) / state.MaxHP > 1)
+        {
+            hpBar.GetComponent<Scrollbar>().size = (state.HP + (state.MaxHP - (state.HP + shieldHP))) / state.MaxHP;
+            Debug.Log(state.MaxHP - (state.HP + shieldHP));
+        }
+        else
+        {
+            hpBar.GetComponent<Scrollbar>().size = state.HP / state.MaxHP;
+        }
+
+        if(shieldHP > 0)
+        {
+            hpBar.transform.GetChild(0).transform.GetChild(0).transform.GetChild(0).GetComponent<Image>().color = Color.white;
+        }
+        else
+        {
+            if(inOperation)
+            {
+                hpBar.transform.GetChild(0).transform.GetChild(0).transform.GetChild(0).GetComponent<Image>().color = Color.red;
+            }
+            else
+            {
+                hpBar.transform.GetChild(0).transform.GetChild(0).transform.GetChild(0).GetComponent<Image>().color = Color.yellow;
+            }
+        }
     }
 
     private void Stop()
@@ -401,8 +435,10 @@ public class ChampController : MonoBehaviour
             ChampPassive();
 
             // 기본 공격 목표에 도착 시
-            if (Vector3.Distance(transform.position, attackTarget.transform.position) <= 2.5f && !PSkillCool)
+            if (Vector3.Distance(transform.position, attackTarget.transform.position) <= state.AttackRange && !PSkillCool)
             {
+                // 사거리 증가
+                state.AttackRange = 3.5f;
                 // 이동 중지
                 ani.SetInteger("isMove", 0);
                 agent.speed = 0;
@@ -438,6 +474,7 @@ public class ChampController : MonoBehaviour
             }
             else if (!ani.GetBool("isPassive"))
             {
+                state.AttackRange = 2.5f;
                 ani.SetInteger("isMove", 2);
                 ani.SetInteger("AttackMotion", 0);
                 ani.SetBool("isAttack", false);
@@ -542,7 +579,26 @@ public class ChampController : MonoBehaviour
 
     public void Damaged(float p_damage)
     {
-        state.HP -= p_damage;
+        // 보호막이 있으면
+        if(shieldHP > 0)
+        {
+            // 근데 보호막이 데미지보다 적다면
+            if(shieldHP < p_damage)
+            {
+                shieldHP = 0;
+                state.HP -= p_damage - shieldHP;
+            }
+            // 보호막이 더 크면
+            else
+            {
+                shieldHP -= p_damage;
+            }
+        }
+        // 보호막이 없으면
+        else
+        {
+            state.HP -= p_damage;
+        }
 
         if (state.HP <= 0 && !die)
         {
@@ -721,6 +777,24 @@ public class ChampController : MonoBehaviour
         {
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
             {
+                // 팀은 제외
+                // 챔피언
+                if (hit.transform.gameObject.layer.Equals(9))
+                {
+                    if (hit.transform.gameObject.GetComponent<ChampController>().team == team)
+                    {
+                        return;
+                    }
+                }
+                // 미니언
+                else if (hit.transform.gameObject.layer.Equals(10))
+                {
+                    if (hit.transform.gameObject.GetComponent<Minion>().team == team)
+                    {
+                        return;
+                    }
+                }
+
                 SetDir(hit.point);
                 eSkillTarget = hit.collider.gameObject;
             }

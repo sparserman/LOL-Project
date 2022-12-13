@@ -20,8 +20,14 @@ public class Poppy : MonoBehaviour
 
     public void PassiveAttack()
     {
+        // 패시브 사용 불가 상태 체크
+        if (CheckCC())
+        {
+            return;
+        }
+
         // 패시브 공격 목표에 도착 시
-        if (Vector3.Distance(transform.position, p.attackTarget.transform.position) <= 7f && p.PSkillCool)
+        if (Vector3.Distance(transform.position, p.attackTarget.transform.position) <= 6f && p.PSkillCool)
         {
             // 이동 중지
             p.ani.SetInteger("isMove", 0);
@@ -70,6 +76,7 @@ public class Poppy : MonoBehaviour
                 cpyObj.GetComponent<PoppyPassiveSkill>().target = p.attackTarget;
                 cpyObj.GetComponent<PoppyPassiveSkill>().champ = p;
                 cpyObj.GetComponent<PoppyPassiveSkill>().power = 80 + p.state.Attack * 1.1f;
+                cpyObj.GetComponent<PoppyPassiveSkill>().shieldHP = 100 + p.state.Attack * 0.7f;
                 // 방패 제거
                 p.shield.SetActive(false);
                 break;
@@ -199,5 +206,19 @@ public class Poppy : MonoBehaviour
                 p.RSkillCool = true;
                 break;
         }
+    }
+
+    // CC 걸렸는 지 체크
+    bool CheckCC()
+    {
+        // 패시브 사용 불가 상태
+        for (int i = 0; i < p.cc.Count; i++)
+        {
+            if (p.cc[i] == CC.STUN)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

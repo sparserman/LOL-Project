@@ -1755,6 +1755,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b86f1f74cf41774dbfad46f06046f65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  team: 1
   MaxHP: 300
   HP: 300
   ATK: 35
@@ -1765,9 +1766,8 @@ MonoBehaviour:
   deltaRotation: 10
   attackTarget: {fileID: 0}
   attackRange: 2
-  speed: 320
+  speed: 300
   aggro: 0
-  team: 1
 --- !u!1 &7162760584292500422
 GameObject:
   m_ObjectHideFlags: 0

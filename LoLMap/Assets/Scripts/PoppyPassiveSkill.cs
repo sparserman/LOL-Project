@@ -14,15 +14,16 @@ public class PoppyPassiveSkill : MonoBehaviour
 
     private float time = 0;     // 시간 체크
 
-    private Vector3 droppos;
+    private Vector3 droppos;    // 떨어질 위치
 
     private float startTime;
 
     public float num = 0;
 
-    public float power = 100;
+    public float power = 100;       // 데미지
+    public float shieldHP = 100;    // 보호막
 
-    private bool dieCheck = false;
+    private bool dieCheck = false;  // 대상이 죽었는 지 체크
 
     private void Start()
     {
@@ -110,7 +111,7 @@ public class PoppyPassiveSkill : MonoBehaviour
                     }
                 }
             }
-            // 죽으면 바로 자기에게 날아오기 아니면 바닥으로
+            // 죽으면 바로 자기에게 날아오기
             if (dieCheck)
             {
                 transform.position +=
@@ -125,6 +126,7 @@ public class PoppyPassiveSkill : MonoBehaviour
                     CreateShield();
                 }
             }
+            // 아니면 바닥으로 떨어지기
             else
             {
                 SlerpFn(transform.position, droppos, 60f);
@@ -166,10 +168,12 @@ public class PoppyPassiveSkill : MonoBehaviour
     {
         if(end)
         {
+            // 주웠을 때
             if(other.gameObject == champ.gameObject)
             {
                 CreateShield();
             }
+            // 상대가 밟았을 때
             else if(other.gameObject.layer.Equals(9))
             {
                 if (other.GetComponent<ChampController>().team != champ.team)
@@ -186,6 +190,10 @@ public class PoppyPassiveSkill : MonoBehaviour
         cpyObj = Instantiate(Resources.Load("Prefabs/" + "PoppyPassiveShield") as GameObject
             , champ.transform.position, Quaternion.identity);
         cpyObj.SetActive(true);
+        champ.GetComponent<ChampController>().shieldHP = shieldHP;
+        // 정보 전달
+        cpyObj.GetComponent<Shield>().champ = champ;
+        cpyObj.GetComponent<Shield>().shieldHP = shieldHP;
 
         Destroy(gameObject);
     }
