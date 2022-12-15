@@ -38,19 +38,24 @@ public class NonTargetDamage : MonoBehaviour
         {
             for (int i = 0; i < targets.Count; i++)
             {
-                if (!targets[i].Equals(user))
+
+                // 챔프면
+                if (targets[i].layer.Equals(9))
                 {
-                    // 챔프면
-                    if (targets[i].layer.Equals(9))
+                    if (user.GetComponent<ChampController>().team != targets[i].GetComponent<ChampController>().team)
                     {
                         targets[i].GetComponent<ChampController>().Damaged(power);
                     }
-                    // 미니언이면
-                    else if (targets[i].layer.Equals(10))
+                }
+                // 미니언이면
+                else if (targets[i].layer.Equals(10))
+                {
+                    if (user.GetComponent<ChampController>().team != targets[i].GetComponent<Minion>().team)
                     {
                         targets[i].GetComponent<Minion>().Damaged(power);
                     }
                 }
+
             }
         }
     }

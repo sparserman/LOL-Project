@@ -961,7 +961,7 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.59999996
+      - time: 0.3044025
         functionName: QSkillEvent
         data: 
         objectReferenceParameter: {instanceID: 0}

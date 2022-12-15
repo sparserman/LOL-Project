@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Shield : MonoBehaviour
 {
@@ -36,6 +37,8 @@ public class Shield : MonoBehaviour
         else
         {
             champ.shieldHP = 0;
+            champ.hpBar.transform.GetChild(0).GetComponent<Scrollbar>().size = 
+                champ.hpBar.GetComponent<Scrollbar>().size;
         }
     }
 }

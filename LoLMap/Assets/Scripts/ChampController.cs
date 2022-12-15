@@ -126,6 +126,63 @@ public class ChampController : MonoBehaviour
         }
     }
 
+    private void OnMouseEnter()
+    {
+        if (!inOperation)
+        {
+            ChampController champ = null;
+            for (int i = 0; i < gm.playerList.Count; i++)
+            {
+                if (gm.playerList[i].GetComponent<ChampController>().inOperation)
+                {
+                    champ = gm.playerList[i].GetComponent<ChampController>();
+                    break;
+                }
+            }
+            // 적이면 빨간색 outline 쉐이더 키기
+            if (champ.team != team)
+            {
+                transform.GetChild(0).gameObject.SetActive(true);
+            }
+            // 팀이면 하늘색 outline 쉐이더 키기
+            else
+            {
+                transform.GetChild(1).gameObject.SetActive(true);
+            }
+        }
+    }
+
+    private void OnMouseExit()
+    {
+        if (!inOperation)
+        {
+            ChampController champ = null;
+            for (int i = 0; i < gm.playerList.Count; i++)
+            {
+                if (gm.playerList[i].GetComponent<ChampController>().inOperation)
+                {
+                    champ = gm.playerList[i].GetComponent<ChampController>();
+                    break;
+                }
+            }
+            // 타겟이 자신이 아니라면
+            if (champ.attackTarget != gameObject)
+            {
+                Debug.Log("같지않음");
+                // 적이면 빨간색 outline 쉐이더 끄기
+                if (champ.team != team)
+                {
+                    transform.GetChild(0).gameObject.SetActive(false);
+                }
+                // 팀이면 하늘색 outline 쉐이더 끄기
+                else
+                {
+                    transform.GetChild(1).gameObject.SetActive(false);
+                }
+            }
+        }
+    }
+
     private void InitSetting()
     {
         state.MaxHP = 600;
@@ -234,92 +291,24 @@ public class ChampController : MonoBehaviour
         // 패킷 보낼 곳
         if (clickCheck)
         {
+
             // 마우스 우클릭 시
             if (Input.GetMouseButton(1) && !moveStop)
             {
+                // 어택 타겟의 outline을 끄기
+                if (attackTarget != null)
+                {
+                    attackTarget.transform.GetChild(0).gameObject.SetActive(false);
+                    attackTarget.transform.GetChild(1).gameObject.SetActive(false);
+                }
+
                 // 클릭 확인
                 clickCheck = false;
 
-                RaycastHit hit;
+                // 공격 할 적 찾기
+                FindAttackTarget();
 
-                // 공격용 위치 찾기
-                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
-                {
-                    // 팀은 제외
-                    // 챔피언
-                    if (hit.transform.gameObject.layer.Equals(9))
-                    {
-                        if (hit.transform.gameObject.GetComponent<ChampController>().team == team)
-                        {
-                            return;
-                        }
-                    }
-                    // 미니언
-                    else if (hit.transform.gameObject.layer.Equals(10))
-                    {
-                        if (hit.transform.gameObject.GetComponent<Minion>().team == team)
-                        {
-                            return;
-                        }
-                    }
-                    
-                    // 리스트에서 적 찾기
-                    int num = -1;
-                    for (int i = 0; i < gm.allList.Count; i++)
-                    {
-                        if (gm.allList[i] == hit.collider.gameObject)
-                        {
-                            num = i;
-                        }
-                    }
-
-                    // 목표를 패킷으로 숫자로 치환해서 보내기
-                    if (gm.serverConnected)
-                    {
-                        int protocol = 0;
-                        switch (champNum)
-                        {
-                            case ChampNum.POPPY:
-                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.ATTACK);
-                                break;
-                            case ChampNum.RENGAR:
-                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.ATTACK);
-                                break;
-                        }
-                        Sever.Instance.AttackPack(protocol, num);
-
-                        // num 보내기
-                    }
-                    else
-                    {
-                        SetAttackTarget(num);
-                    }
-                }
-                // 이동용 위치 찾기
-                else if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
-                {
-                    if(gm.serverConnected)
-                    {
-                        int protocol = 0;
-                        switch (champNum)
-                        {
-                            case ChampNum.POPPY:
-                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.MOVE);
-                                break;
-                            case ChampNum.RENGAR:
-                                protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.MOVE);
-                                break;
-                        }
-                        Sever.Instance.MovePack(protocol, hit.point);
-
-
-                        // 패킷으로 위치 전송 hit.point
-                    }
-                    else
-                    {
-                        SetMovePos(hit.point);
-                    }
-                }
+                FindMovePos();
             }
             if (Input.GetMouseButton(1) && moveStop)
             {
@@ -338,6 +327,103 @@ public class ChampController : MonoBehaviour
         {
             clickCheck = true;
             clickTime = 0;
+        }
+    }
+
+    private void FindAttackTarget()
+    {
+        RaycastHit hit;
+
+        // 공격용 위치 찾기
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, enemyMask))
+        {
+            // 팀은 제외
+            // 챔피언
+            if (hit.transform.gameObject.layer.Equals(9))
+            {
+                if (hit.transform.gameObject.GetComponent<ChampController>().team == team)
+                {
+                    attackTarget = null;
+                    return;
+                }
+            }
+            // 미니언
+            else if (hit.transform.gameObject.layer.Equals(10))
+            {
+                if (hit.transform.gameObject.GetComponent<Minion>().team == team)
+                {
+                    attackTarget = null;
+                    return;
+                }
+            }
+
+            // 리스트에서 적 찾기
+            int num = -1;
+            for (int i = 0; i < gm.allList.Count; i++)
+            {
+                if (gm.allList[i] == hit.collider.gameObject)
+                {
+                    num = i;
+                }
+            }
+
+            // 목표를 패킷으로 숫자로 치환해서 보내기
+            if (gm.serverConnected)
+            {
+                int protocol = 0;
+                switch (champNum)
+                {
+                    case ChampNum.POPPY:
+                        protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.ATTACK);
+                        break;
+                    case ChampNum.RENGAR:
+                        protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.ATTACK);
+                        break;
+                }
+                Sever.Instance.AttackPack(protocol, num);
+
+                // num 보내기
+            }
+            else
+            {
+                SetAttackTarget(num);
+            }
+
+        }
+        else
+        {
+            attackTarget = null;
+        }
+    }
+
+    private void FindMovePos()
+    {
+        RaycastHit hit;
+
+        // 이동용 위치 찾기
+        if (attackTarget == null && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100.0f, mapMask))
+        {
+            if (gm.serverConnected)
+            {
+                int protocol = 0;
+                switch (champNum)
+                {
+                    case ChampNum.POPPY:
+                        protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Poppy, Pro.MOVE);
+                        break;
+                    case ChampNum.RENGAR:
+                        protocol = Sever.Manager_Protocol.Instance.Packing_prot(Pro.GAME_Rengar, Pro.MOVE);
+                        break;
+                }
+                Sever.Instance.MovePack(protocol, hit.point);
+
+
+                // 패킷으로 위치 전송 hit.point
+            }
+            else
+            {
+                SetMovePos(hit.point);
+            }
         }
     }
 
@@ -397,6 +483,8 @@ public class ChampController : MonoBehaviour
         if (!RSkillCheck)
         {
             attackTarget = gm.allList[p_listNum].gameObject;
+            // 적이니까 빨간색 outline 쉐이더 키기
+            attackTarget.transform.GetChild(0).gameObject.SetActive(true);
         }
     }
 
@@ -606,6 +694,9 @@ public class ChampController : MonoBehaviour
             die = true;
             ani.Play("Die");
             hpBar.SetActive(false);
+            // outline 끄기
+            transform.GetChild(0).gameObject.SetActive(false);
+            transform.GetChild(1).gameObject.SetActive(false);
             // 정지
             Stop();
             GetComponent<Collider>().enabled = false;

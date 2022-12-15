@@ -12,7 +12,7 @@ public class Minion : MonoBehaviour
 
     public float MaxHP = 300;
     public float HP = 300;
-    public float ATK = 35;
+    public float ATK = 15;
 
     public bool die = false;
 
@@ -65,6 +65,56 @@ public class Minion : MonoBehaviour
         {
             MinionControl();
             HPBarControl();
+        }
+    }
+
+    private void OnMouseEnter()
+    {
+        ChampController champ = null;
+        for (int i = 0; i < gm.playerList.Count; i++)
+        {
+            if (gm.playerList[i].GetComponent<ChampController>().inOperation)
+            {
+                champ = gm.playerList[i].GetComponent<ChampController>();
+                break;
+            }
+        }
+        // ÀûÀÌ¸é »¡°£»ö outline ½¦ÀÌ´õ Å°±â
+        if (champ.team != team)
+        {
+            transform.GetChild(0).gameObject.SetActive(true);
+        }
+        // ÆÀÀÌ¸é ÇÏ´Ã»ö outline ½¦ÀÌ´õ Å°±â
+        else
+        {
+            transform.GetChild(1).gameObject.SetActive(true);
+        }
+    }
+
+    private void OnMouseExit()
+    {
+        ChampController champ = null;
+        for (int i = 0; i < gm.playerList.Count; i++)
+        {
+            if (gm.playerList[i].GetComponent<ChampController>().inOperation)
+            {
+                champ = gm.playerList[i].GetComponent<ChampController>();
+                break;
+            }
+        }
+        // Å¸°ÙÀÌ ÀÚ½ÅÀÌ ¾Æ´Ï¶ó¸é
+        if (champ.attackTarget != gameObject)
+        {
+            // ÀûÀÌ¸é »¡°£»ö outline ½¦ÀÌ´õ ²ô±â
+            if (champ.team != team)
+            {
+                transform.GetChild(0).gameObject.SetActive(false);
+            }
+            // ÆÀÀÌ¸é ÇÏ´Ã»ö outline ½¦ÀÌ´õ ²ô±â
+            else
+            {
+                transform.GetChild(1).gameObject.SetActive(false);
+            }
         }
     }
 
@@ -208,6 +258,9 @@ public class Minion : MonoBehaviour
             hpBar.SetActive(false);
             GetComponent<Collider>().enabled = false;
             GetComponent<NavMeshAgent>().enabled = false;
+            // outline ²ô±â
+            transform.GetChild(0).gameObject.SetActive(false);
+            transform.GetChild(1).gameObject.SetActive(false);
         }
     }
 
